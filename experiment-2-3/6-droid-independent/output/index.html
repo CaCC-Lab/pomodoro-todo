@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="PomoTodoはポモドーロタイマーとタスク管理を統合した生産性向上アプリです。" />
+  <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header" role="banner">
+    <div class="branding">
+      <h1 class="app-title" aria-level="1">PomoTodo</h1>
+      <p class="app-subtitle">ポモドーロタイマー統合型タスク管理</p>
+    </div>
+    <div class="today-stats" aria-live="polite">
+      <div class="stat-item" aria-label="今日のポモドーロ数"><span class="stat-label">Today</span><span class="stat-value" id="stat-today-pomodoros">🍅 0</span></div>
+      <div class="stat-item" aria-label="完了したタスク数"><span class="stat-label">Tasks</span><span class="stat-value" id="stat-today-tasks">✓ 0/0</span></div>
+      <div class="stat-item" aria-label="合計作業時間"><span class="stat-label">Time</span><span class="stat-value" id="stat-today-time">0h 0m</span></div>
+      <div class="stat-item" aria-label="連続ポモドーロ"><span class="stat-label">Streak</span><span class="stat-value" id="stat-streak">0</span></div>
+    </div>
+    <div class="header-actions" role="group" aria-label="アプリ操作">
+      <button class="btn btn-secondary" type="button" id="toggle-focus-btn" aria-pressed="false">集中モード: OFF</button>
+      <button class="btn btn-secondary" type="button" id="open-settings-btn">設定</button>
+      <button class="btn btn-secondary" type="button" id="export-btn">エクスポート</button>
+      <label class="btn btn-secondary file-input-label" for="import-input">
+        インポート
+        <input id="import-input" type="file" accept="application/json" />
+      </label>
+    </div>
+  </header>
+  <main class="app-main" role="main">
+    <section class="panel panel--tasks" aria-labelledby="tasks-heading">
+      <header class="panel-header">
+        <h2 id="tasks-heading">タスクリスト</h2>
+        <p class="panel-description">タスクを追加し、ポモドーロの見積もりと実績を管理します。</p>
+      </header>
+      <form class="task-form" id="task-form" aria-label="タスク追加フォーム">
+        <label class="form-group">
+          <span class="form-label">タスク名</span>
+          <input id="task-title" name="taskTitle" type="text" maxlength="100" placeholder="新しいタスク" aria-required="true" autocomplete="off" />
+        </label>
+        <label class="form-group">
+          <span class="form-label">見積もり (🍅)</span>
+          <input id="task-estimate" name="estimatedPomodoros" type="number" min="1" max="20" value="1" aria-required="true" />
+        </label>
+        <button class="btn btn-primary" type="submit" aria-label="タスクを追加">追加</button>
+      </form>
+      <p class="form-error" id="task-form-error" role="alert" aria-live="assertive" hidden></p>
+      <div class="task-toolbar" role="toolbar" aria-label="タスク操作ツール">
+        <label class="search-field">
+          <span class="visually-hidden">タスク検索</span>
+          <input type="search" id="task-search" placeholder="タスクを検索" autocomplete="off" />
+        </label>
+        <div class="toolbar-actions">
+          <button class="btn btn-secondary" type="button" id="sort-created-btn" data-sort="created">作成順</button>
+          <button class="btn btn-secondary" type="button" id="sort-estimate-btn" data-sort="estimate">見積順</button>
+          <button class="btn btn-secondary" type="button" id="bulk-delete-btn">完了タスク削除</button>
+        </div>
+      </div>
+      <div class="task-filters" role="group" aria-label="タスクフィルター">
+        <button class="filter-btn active" data-filter="all">全て</button>
+        <button class="filter-btn" data-filter="active">未完了</button>
+        <button class="filter-btn" data-filter="completed">完了済み</button>
+      </div>
+      <div class="empty-state" id="task-empty-state" aria-live="polite" hidden>タスクがありません。最初のタスクを追加しましょう。</div>
+      <ul class="task-list" id="task-list" role="list" aria-live="polite"></ul>
+    </section>
+    <section class="panel panel--timer" aria-labelledby="timer-heading">
+      <header class="panel-header">
+        <h2 id="timer-heading">ポモドーロタイマー</h2>
+        <p class="panel-description">タスクを選択して集中タイマーを開始しましょう。休憩も自動で切り替わります。</p>
+      </header>
+      <div class="timer" role="timer" aria-live="assertive">
+        <div class="timer-mode" id="timer-mode">待機中</div>
+        <div class="timer-display" id="timer-display">25:00</div>
+        <div class="progress"><div class="progress-bar" id="progress-bar" role="presentation"></div></div>
+        <div class="current-task" id="current-task">選択中: なし</div>
+      </div>
+      <div class="timer-controls" role="group" aria-label="タイマーコントロール">
+        <button class="btn btn-primary" id="start-btn" type="button">開始</button>
+        <button class="btn btn-secondary" id="pause-btn" type="button">一時停止</button>
+        <button class="btn btn-secondary" id="reset-btn" type="button">リセット</button>
+        <button class="btn btn-danger" id="skip-btn" type="button">スキップ</button>
+      </div>
+      <section class="timer-stats" aria-labelledby="timer-stats-heading">
+        <h3 id="timer-stats-heading">今日の統計</h3>
+        <ul class="stat-list">
+          <li class="stat-list-item"><span class="stat-list-label">ポモドーロ</span><span class="stat-list-value" id="stat-list-pomodoros">🍅 0</span></li>
+          <li class="stat-list-item"><span class="stat-list-label">完了タスク</span><span class="stat-list-value" id="stat-list-tasks">✓ 0/0</span></li>
+          <li class="stat-list-item"><span class="stat-list-label">作業時間</span><span class="stat-list-value" id="stat-list-time">0h 0m</span></li>
+        </ul>
+      </section>
+      <section class="weekly-insights" aria-labelledby="weekly-heading">
+        <h3 id="weekly-heading">過去7日間のポモドーロ</h3>
+        <div class="weekly-chart" id="weekly-chart" role="list" aria-live="polite"></div>
+      </section>
+    </section>
+  </main>
+  <div class="notification" id="notification" role="alert" aria-live="polite"></div>
+  <dialog class="confirm-dialog" id="confirm-dialog" aria-modal="true">
+    <form method="dialog" class="confirm-dialog__form">
+      <p class="confirm-dialog__message" id="confirm-message">この操作を実行しますか？</p>
+      <div class="confirm-dialog__actions">
+        <button value="cancel" class="btn btn-secondary">キャンセル</button>
+        <button value="confirm" class="btn btn-danger">実行</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="settings-dialog" id="settings-dialog" aria-modal="true">
+    <form method="dialog" class="settings-form" id="settings-form">
+      <header class="settings-header">
+        <h2 class="settings-title">設定</h2>
+        <p class="settings-description">タイマー時間や通知音、集中モードなどをカスタマイズします。</p>
+      </header>
+      <div class="settings-grid">
+        <label class="settings-field">
+          <span>作業時間 (分)</span>
+          <input type="number" id="settings-work-duration" min="1" max="60" required />
+        </label>
+        <label class="settings-field">
+          <span>短い休憩 (分)</span>
+          <input type="number" id="settings-short-break" min="1" max="30" required />
+        </label>
+        <label class="settings-field">
+          <span>長い休憩 (分)</span>
+          <input type="number" id="settings-long-break" min="5" max="60" required />
+        </label>
+        <label class="settings-field">
+          <span>長い休憩の間隔 (ポモドーロ)</span>
+          <input type="number" id="settings-long-interval" min="2" max="12" required />
+        </label>
+        <label class="settings-field">
+          <span>通知音</span>
+          <select id="settings-sound">
+            <option value="beep">ビープ</option>
+            <option value="bell">ベル</option>
+            <option value="chime">チャイム</option>
+            <option value="silent">サイレント</option>
+          </select>
+        </label>
+        <label class="settings-field settings-toggle">
+          <input type="checkbox" id="settings-focus-mode" />
+          <span>集中モードを有効にする</span>
+        </label>
+        <label class="settings-field">
+          <span>デフォルトフィルター</span>
+          <select id="settings-filter-default">
+            <option value="all">全て</option>
+            <option value="active">未完了</option>
+            <option value="completed">完了済み</option>
+          </select>
+        </label>
+      </div>
+      <footer class="settings-actions">
+        <button type="button" class="btn btn-secondary" id="settings-reset-btn">デフォルトに戻す</button>
+        <div class="settings-actions__submit">
+          <button value="cancel" class="btn btn-secondary">キャンセル</button>
+          <button value="confirm" class="btn btn-primary" id="settings-save-btn">保存</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+  <div class="focus-overlay" id="focus-overlay" aria-hidden="true">
+    <p>集中モードが有効です。タイマー終了まで他の操作は制限されます。</p>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>

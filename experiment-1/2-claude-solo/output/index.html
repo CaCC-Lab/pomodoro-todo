@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PomoTodo - ポモドーロタイマー統合型タスク管理アプリ">
+    <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <h1>🍅 PomoTodo</h1>
+        <div class="today-stats">
+            <span id="today-pomodoros">Today: 🍅 <span id="pomodoro-count">0</span></span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- Left Column: Todo List -->
+        <section class="todo-section">
+            <h2>タスクリスト</h2>
+
+            <!-- Task Input Form -->
+            <form id="task-form" class="task-form">
+                <input
+                    type="text"
+                    id="task-input"
+                    placeholder="新しいタスク"
+                    maxlength="100"
+                    autocomplete="off"
+                    required
+                >
+                <input
+                    type="number"
+                    id="pomodoro-estimate"
+                    placeholder="🍅"
+                    min="1"
+                    max="20"
+                    title="見積もりポモドーロ数（1-20）"
+                >
+                <button type="submit" class="btn-primary">追加</button>
+            </form>
+
+            <!-- Filter Buttons -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="active">未完了</button>
+                <button class="filter-btn" data-filter="completed">完了済み</button>
+            </div>
+
+            <!-- Task List -->
+            <ul id="task-list" class="task-list"></ul>
+        </section>
+
+        <!-- Right Column: Timer -->
+        <section class="timer-section">
+            <h2>ポモドーロタイマー</h2>
+
+            <!-- Timer Display -->
+            <div class="timer-container">
+                <div class="timer-mode" id="timer-mode">待機中</div>
+                <div class="timer-display" id="timer-display">25:00</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="current-task" id="current-task">タスクを選択してください</div>
+            </div>
+
+            <!-- Timer Controls -->
+            <div class="timer-controls">
+                <button id="start-btn" class="btn-primary">開始</button>
+                <button id="pause-btn" class="btn-secondary">一時停止</button>
+                <button id="reset-btn" class="btn-secondary">リセット</button>
+                <button id="skip-btn" class="btn-secondary">スキップ</button>
+            </div>
+
+            <!-- Statistics -->
+            <div class="statistics">
+                <h3>今日の統計</h3>
+                <div class="stat-item">
+                    <span class="stat-label">ポモドーロ数:</span>
+                    <span class="stat-value" id="stat-pomodoros">🍅 0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">完了タスク:</span>
+                    <span class="stat-value" id="stat-tasks">✓ 0/0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">作業時間:</span>
+                    <span class="stat-value" id="stat-time">0h 0m</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification Area -->
+    <div id="notification" class="notification" role="alert" aria-live="polite"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="modal" class="modal" hidden>
+        <div class="modal-content">
+            <p id="modal-message"></p>
+            <div class="modal-buttons">
+                <button id="modal-confirm" class="btn-primary">はい</button>
+                <button id="modal-cancel" class="btn-secondary">いいえ</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

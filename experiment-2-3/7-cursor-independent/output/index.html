@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PomoTodo</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="app-header" role="banner">
+      <div class="header-brand">
+        <h1 class="app-title">PomoTodo</h1>
+        <p class="app-subtitle" aria-live="polite">
+          Today: <span id="today-pomodoro-count">🍅 0</span>
+        </p>
+      </div>
+      <button class="btn-secondary" id="open-settings" type="button" aria-haspopup="dialog">
+        設定
+      </button>
+    </header>
+
+    <main class="app-main" role="main">
+      <section class="todo-panel" aria-labelledby="todo-panel-title">
+        <header class="panel-header">
+          <h2 id="todo-panel-title">タスク</h2>
+          <form id="task-form" class="task-form" novalidate>
+            <label class="visually-hidden" for="new-task-title">タスク名</label>
+            <input
+              id="new-task-title"
+              name="title"
+              type="text"
+              maxlength="100"
+              placeholder="タスク名"
+              autocomplete="off"
+              required
+            />
+            <label class="visually-hidden" for="new-task-estimate">見積ポモ数 (1-20)</label>
+            <input
+              id="new-task-estimate"
+              name="estimate"
+              type="number"
+              min="1"
+              max="20"
+              placeholder="🍅"
+            />
+            <button class="btn-primary" type="submit">追加</button>
+          </form>
+        </header>
+
+        <div id="task-form-error" class="form-error" role="alert" aria-live="assertive"></div>
+
+        <div class="filter-group" role="group" aria-label="タスク表示フィルタ">
+          <button type="button" class="filter-button is-active" data-filter="all" aria-pressed="true">全て</button>
+          <button type="button" class="filter-button" data-filter="active" aria-pressed="false">未完了</button>
+          <button type="button" class="filter-button" data-filter="completed" aria-pressed="false">完了</button>
+        </div>
+
+        <ul id="task-list" class="task-list" aria-live="polite"></ul>
+      </section>
+
+      <section class="timer-panel" aria-labelledby="timer-panel-title">
+        <header class="panel-header">
+          <h2 id="timer-panel-title">ポモドーロタイマー</h2>
+          <p id="current-task-name" class="current-task-name" aria-live="polite">タスク未選択</p>
+        </header>
+
+        <div class="timer-display" role="timer" aria-live="assertive">
+          <div id="timer-mode" class="timer-mode">Idle</div>
+          <div id="timer-remaining" class="timer-remaining">25:00</div>
+          <div class="timer-progress">
+            <div id="timer-progress-bar" class="timer-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <button class="btn-primary" id="timer-start" type="button">開始</button>
+          <button class="btn-secondary" id="timer-pause" type="button" disabled>一時停止</button>
+          <button class="btn-secondary" id="timer-resume" type="button" disabled>再開</button>
+          <button class="btn-secondary" id="timer-reset" type="button">リセット</button>
+          <button class="btn-secondary" id="timer-skip" type="button">スキップ</button>
+        </div>
+
+        <section class="statistics" aria-labelledby="statistics-title">
+          <h3 id="statistics-title">今日の統計</h3>
+          <ul class="statistics-list">
+            <li><span class="stat-label">ポモドーロ</span><span id="stat-today-pomodoros">0</span></li>
+            <li><span class="stat-label">完了タスク</span><span id="stat-today-completed">0</span></li>
+            <li><span class="stat-label">作業時間</span><span id="stat-today-duration">0h 0m</span></li>
+            <li><span class="stat-label">ストリーク</span><span id="stat-streak">0</span></li>
+          </ul>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <form method="dialog" class="settings-form" id="settings-form">
+        <header>
+          <h2 id="settings-title">設定</h2>
+        </header>
+        <section class="settings-section">
+          <h3>タイマー時間</h3>
+          <label>作業タイマー (分)
+            <input type="number" name="workDuration" min="1" max="60" />
+          </label>
+          <label>短い休憩 (分)
+            <input type="number" name="shortBreakDuration" min="1" max="30" />
+          </label>
+          <label>長い休憩 (分)
+            <input type="number" name="longBreakDuration" min="5" max="60" />
+          </label>
+          <label>長い休憩までのポモドーロ数
+            <input type="number" name="longBreakInterval" min="1" max="10" />
+          </label>
+        </section>
+
+        <section class="settings-section">
+          <h3>通知</h3>
+          <label for="notification-sound">通知音</label>
+          <select id="notification-sound" name="notificationSound">
+            <option value="beep">ビープ</option>
+            <option value="bell">ベル</option>
+            <option value="chime">チャイム</option>
+            <option value="silent">サイレント</option>
+          </select>
+        </section>
+
+        <section class="settings-section">
+          <label>
+            <input type="checkbox" name="focusMode" /> 集中モードを有効化
+          </label>
+        </section>
+
+        <footer class="settings-footer">
+          <button type="submit" class="btn-primary">保存</button>
+          <button type="button" class="btn-secondary" id="settings-cancel">キャンセル</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <div id="notification-area" class="notification-area" role="status" aria-live="polite"></div>
+
+    <audio id="audio-beep" preload="auto">
+      <source src="assets/audio/beep.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="audio-bell" preload="auto">
+      <source src="assets/audio/bell.mp3" type="audio/mpeg" />
+    </audio>
+    <audio id="audio-chime" preload="auto">
+      <source src="assets/audio/chime.mp3" type="audio/mpeg" />
+    </audio>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+
+{
+  "name": "gemini-test",
+  "version": "1.0.0",
+  "description": "Tests for the PomoTodo app",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["./test/setup.js"]
+  }
+}

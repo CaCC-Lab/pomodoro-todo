@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ポモドーロタイマー統合型タスク管理アプリ">
+    <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="header">
+        <h1 class="header-title">PomoTodo</h1>
+        <div class="header-stats">
+            <span class="header-stat" id="todayPomodoros">Today: 🍅 0</span>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main-container">
+        <!-- 左カラム: Todoリスト -->
+        <section class="todo-section">
+            <div class="todo-header">
+                <h2>タスクリスト</h2>
+            </div>
+
+            <!-- タスク追加フォーム -->
+            <form class="task-form" id="taskForm">
+                <input
+                    type="text"
+                    id="taskInput"
+                    class="task-input"
+                    placeholder="新しいタスクを入力..."
+                    maxlength="100"
+                    aria-label="タスク名"
+                >
+                <input
+                    type="number"
+                    id="estimateInput"
+                    class="estimate-input"
+                    placeholder="見積もり🍅"
+                    min="1"
+                    max="20"
+                    aria-label="見積もりポモドーロ数"
+                >
+                <button type="submit" class="btn btn-primary">追加</button>
+            </form>
+
+            <!-- エラーメッセージ表示領域 -->
+            <div class="error-message" id="errorMessage" role="alert"></div>
+
+            <!-- フィルタボタン -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="active">未完了</button>
+                <button class="filter-btn" data-filter="completed">完了済み</button>
+            </div>
+
+            <!-- タスクリスト -->
+            <ul class="task-list" id="taskList" role="list">
+                <!-- タスクがここに動的に追加されます -->
+            </ul>
+        </section>
+
+        <!-- 右カラム: ポモドーロタイマー -->
+        <section class="timer-section">
+            <!-- タイマー表示 -->
+            <div class="timer-display">
+                <div class="timer-mode" id="timerMode">作業時間</div>
+                <div class="timer-time" id="timerTime">25:00</div>
+                <div class="timer-progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="timer-task" id="currentTask">タスクを選択してください</div>
+            </div>
+
+            <!-- タイマーコントロール -->
+            <div class="timer-controls">
+                <button class="btn btn-success" id="startBtn">開始</button>
+                <button class="btn btn-secondary" id="pauseBtn" disabled>一時停止</button>
+                <button class="btn btn-secondary" id="resetBtn">リセット</button>
+                <button class="btn btn-secondary" id="skipBtn">スキップ</button>
+            </div>
+
+            <!-- 今日の統計 -->
+            <div class="stats-card">
+                <h3>今日の統計</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statPomodoros">0</div>
+                        <div class="stat-label">🍅 完了</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTasks">0</div>
+                        <div class="stat-label">✓ タスク</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statTime">0h 0m</div>
+                        <div class="stat-label">⏱ 時間</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 通知用のオーディオ要素 -->
+    <audio id="notificationSound" preload="auto">
+        <!-- 通知音はJavaScriptで動的に生成 -->
+    </audio>
+
+    <script src="app.js"></script>
+</body>
+</html>

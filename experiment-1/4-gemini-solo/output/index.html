@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ポモドーロタイマーとTodoリストを統合した生産性向上アプリ">
+    <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>PomoTodo</h1>
+        <div class="stats">
+            <div class="stat" id="today-pomodoros">Today: 🍅 0</div>
+            <div class="stat" id="completed-tasks">Tasks: ✓ 0/0</div>
+            <div class="stat" id="total-time">Time: 0h 0m</div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section class="todo-section">
+            <form id="task-form">
+                <input type="text" id="task-title-input" maxlength="100" placeholder="新しいタスクを追加..." required>
+                <input type="number" id="task-pomodoro-input" min="1" max="20" value="1">
+                <button type="submit">追加</button>
+            </form>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="active">未完了</button>
+                <button class="filter-btn" data-filter="completed">完了済み</button>
+            </div>
+            <ul id="task-list">
+                <!-- Task items will be dynamically inserted here -->
+            </ul>
+        </section>
+
+        <section class="timer-section">
+            <div class="timer-mode" id="timer-mode">作業を選択</div>
+            <div class="timer-display" id="timer-display">25:00</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="current-task" id="current-task-display">タスクが選択されていません</div>
+
+            <div class="timer-controls">
+                <button id="start-btn">開始</button>
+                <button id="pause-btn" style="display: none;">一時停止</button>
+                <button id="reset-btn">リセット</button>
+                <button id="skip-btn">スキップ</button>
+            </div>
+        </section>
+    </main>
+
+    <div class="notification" id="notification" role="alert" aria-live="polite"></div>
+
+    <div class="modal" id="confirm-modal" hidden>
+        <div class="modal-content">
+            <p id="modal-message"></p>
+            <button id="modal-confirm-btn">OK</button>
+            <button id="modal-cancel-btn">キャンセル</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

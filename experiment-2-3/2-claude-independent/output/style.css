@@ -1,0 +1,532 @@
+/* ========================================
+   CSS Variables & Reset
+   ======================================== */
+
+:root {
+    /* Primary Colors */
+    --primary-red: #e74c3c;
+    --primary-green: #27ae60;
+    --primary-blue: #3498db;
+
+    /* Background */
+    --bg-main: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-hover: #e9ecef;
+
+    /* Text */
+    --text-primary: #2c3e50;
+    --text-secondary: #7f8c8d;
+    --text-disabled: #bdc3c7;
+
+    /* Border */
+    --border-color: #dee2e6;
+
+    /* Status */
+    --success: #27ae60;
+    --warning: #f39c12;
+    --error: #e74c3c;
+
+    /* Font Sizes */
+    --font-size-xs: 12px;
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 18px;
+    --font-size-xl: 24px;
+    --font-size-2xl: 32px;
+    --font-size-timer: 64px;
+
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-main: #1a1a1a;
+        --bg-secondary: #2d2d2d;
+        --bg-hover: #3d3d3d;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --text-disabled: #666666;
+        --border-color: #404040;
+    }
+}
+
+/* CSS Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-secondary);
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.header {
+    background: var(--bg-main);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-blue);
+}
+
+.header-stats {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ========================================
+   Main Container
+   ======================================== */
+
+.main-container {
+    display: grid;
+    grid-template-columns: 40% 60%;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* ========================================
+   Todo Section
+   ======================================== */
+
+.todo-section {
+    background: var(--bg-main);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.todo-header h2 {
+    margin-bottom: 1.5rem;
+    font-size: var(--font-size-xl);
+}
+
+.task-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.task-input {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s;
+}
+
+.task-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.estimate-input {
+    width: 100px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: var(--font-size-base);
+}
+
+.estimate-input:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Error Message */
+.error-message {
+    color: var(--error);
+    font-size: var(--font-size-sm);
+    margin-bottom: 1rem;
+    min-height: 20px;
+    display: none;
+}
+
+.error-message.show {
+    display: block;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: var(--bg-hover);
+}
+
+.filter-btn.active {
+    background: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+/* Task List */
+.task-list {
+    list-style: none;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.task-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.task-item:hover {
+    background: var(--bg-hover);
+    transform: translateX(4px);
+}
+
+.task-item.selected {
+    border-color: var(--primary-blue);
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.task-item.completed {
+    opacity: 0.6;
+}
+
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+.task-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-title {
+    font-size: var(--font-size-base);
+    margin-bottom: 4px;
+}
+
+.task-pomodoros {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.task-pomodoros.completed-goal {
+    color: var(--success);
+}
+
+.task-pomodoros.exceeded-goal {
+    color: var(--warning);
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.task-delete {
+    background: var(--error);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    transition: opacity 0.2s;
+}
+
+.task-delete:hover {
+    opacity: 0.8;
+}
+
+/* ========================================
+   Timer Section
+   ======================================== */
+
+.timer-section {
+    background: var(--bg-main);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timer-display {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.timer-mode {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.timer-mode.work {
+    color: var(--primary-red);
+}
+
+.timer-mode.break {
+    color: var(--primary-green);
+}
+
+.timer-time {
+    font-size: var(--font-size-timer);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: 1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.timer-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: var(--primary-blue);
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.timer-task {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+/* ========================================
+   Stats Card
+   ======================================== */
+
+.stats-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.stats-card h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: 1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-blue);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    transition: all 0.2s;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--primary-blue);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #229954;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--bg-hover);
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.task-item.new {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.task-item.removing {
+    animation: fadeOut 0.3s ease-out forwards;
+}
+
+.timer-time.running {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+
+/* Tablet (768px-1023px) */
+@media (max-width: 1023px) {
+    .main-container {
+        grid-template-columns: 45% 55%;
+    }
+}
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+    .header {
+        padding: 1rem;
+    }
+
+    .header-title {
+        font-size: var(--font-size-xl);
+    }
+
+    .main-container {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+        gap: 1rem;
+    }
+
+    .task-form {
+        flex-direction: column;
+    }
+
+    .estimate-input {
+        width: 100%;
+    }
+
+    .timer-time {
+        font-size: 48px;
+    }
+
+    .timer-controls {
+        flex-wrap: wrap;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

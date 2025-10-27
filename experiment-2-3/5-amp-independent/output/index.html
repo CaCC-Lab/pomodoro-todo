@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ポモドーロタイマー統合型タスク管理アプリ">
+  <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>🍅 PomoTodo</h1>
+      <div class="stats-summary">
+        <div class="stat-item">
+          <span class="stat-label">今日のポモドーロ</span>
+          <span class="stat-value" id="today-pomodoros">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">完了タスク</span>
+          <span class="stat-value" id="today-tasks">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">作業時間</span>
+          <span class="stat-value" id="today-time">0分</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="timer-section">
+        <div class="timer-display">
+          <div class="timer-mode" id="timer-mode">作業時間</div>
+          <div class="timer-time" id="timer-time">25:00</div>
+          <div class="timer-progress">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <div class="current-task" id="current-task">タスクを選択してください</div>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-primary" id="btn-start">開始</button>
+          <button class="btn btn-secondary" id="btn-pause" disabled>一時停止</button>
+          <button class="btn btn-secondary" id="btn-reset">リセット</button>
+          <button class="btn btn-secondary" id="btn-skip">スキップ</button>
+        </div>
+      </section>
+
+      <section class="todo-section">
+        <div class="task-input-form">
+          <input 
+            type="text" 
+            id="task-input" 
+            placeholder="タスク名を入力..." 
+            maxlength="100"
+          >
+          <input 
+            type="number" 
+            id="task-estimate" 
+            placeholder="見積もり" 
+            min="1" 
+            max="20"
+          >
+          <button class="btn btn-primary" id="btn-add-task">追加</button>
+        </div>
+
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">全て</button>
+          <button class="filter-btn" data-filter="active">未完了</button>
+          <button class="filter-btn" data-filter="completed">完了済み</button>
+        </div>
+
+        <div class="task-list" id="task-list">
+        </div>
+      </section>
+    </main>
+
+    <div class="modal" id="modal">
+      <div class="modal-content">
+        <p id="modal-message"></p>
+        <div class="modal-buttons">
+          <button class="btn btn-primary" id="modal-ok">OK</button>
+          <button class="btn btn-secondary" id="modal-cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

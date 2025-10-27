@@ -1,0 +1,29 @@
+{
+  "review_summary": {
+    "total_findings": 2,
+    "critical": 0,
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  },
+  "findings": [
+    {
+      "severity": "High",
+      "category": "Code Quality",
+      "title": "Complex function needs refactoring",
+      "description": "Function has cyclomatic complexity of 15",
+      "file": "src/example.js",
+      "line": 42,
+      "suggestion": "Break down into smaller functions"
+    },
+    {
+      "severity": "Medium",
+      "category": "Performance",
+      "title": "Inefficient loop",
+      "description": "Nested loop with O(n²) complexity",
+      "file": "src/example.js",
+      "line": 78,
+      "suggestion": "Consider using a map or set"
+    }
+  ]
+}

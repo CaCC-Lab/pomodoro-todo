@@ -1,0 +1,19 @@
+{
+  "name": "cursor-independent-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest --runInBand",
+    "test:coverage": "jest --coverage --runInBand"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jsdom": "^24.0.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "roots": ["<rootDir>/test"],
+    "coverageDirectory": "<rootDir>/coverage",
+    "collectCoverageFrom": ["output/app.js"]
+  }
+}

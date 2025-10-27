@@ -1,0 +1,29 @@
+{
+  "metadata": {
+    "tool": "alternative",
+    "version": "1.0.0",
+    "timestamp": "2025-10-27T13:42:19Z",
+    "commit": "HEAD",
+    "commit_short": "7171739",
+    "execution_time_ms": 0,
+    "review_type": "pattern_matching"
+  },
+  "summary": {
+    "lines_added": 0,
+    "lines_removed": 0,
+    "net_change": 0,
+    "total_issues": 5,
+    "severity": {
+      "critical": 1,
+      "high": 1,
+      "medium": 3,
+      "low": 00
+    }
+  },
+  "analysis": {
+    "ai_analysis_performed": true,
+    "pattern_matching": true,
+    "security_scan": true
+  },
+  "log_file": "/home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_7171739_alt.log"
+}

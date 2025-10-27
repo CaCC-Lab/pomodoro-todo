@@ -1,0 +1,6 @@
+[2025-10-27T13:38:25Z] Enterprise review started | commit=c08a599a963f473e08a516eb1acebeec21df37a6 compliance_mode=false
+[2025-10-27T13:38:25Z] Primary review (Droid) started | timeout=900s
+[2025-10-27T13:39:58Z] Primary review (Droid) completed | duration=92735ms exit_code=0
+[2025-10-27T13:39:58Z] Review output saved | file=droid-review.json
+[2025-10-27T13:39:58Z] All reports generated | json,markdown,html
+[2025-10-27T13:39:58Z] Enterprise review completed successfully | 

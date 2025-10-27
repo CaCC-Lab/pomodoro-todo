@@ -1,0 +1,913 @@
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Self-Review Experiment - 自動実行スクリプト
+  24回のレビュー実行（自己 + CodeRabbit + Security）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[0;34m[INFO][0m 実験設定:
+[0;34m[INFO][0m   実験構造: Phase 1 (自己レビュー 8回) + Phase 2 (CodeRabbit 8回) + Phase 3 (Security 8回)
+[0;34m[INFO][0m   合計レビュー数: 24回
+[0;34m[INFO][0m   並列実行: true
+[0;34m[INFO][0m   タイムアウト: 900秒/レビュー
+[0;34m[INFO][0m   ドライラン: false
+
+
+[0;36m[STEP][0m 実験環境を検証中...
+[0;32m[SUCCESS][0m 環境検証完了 - 8つの実装と10個のレビュースクリプトを確認
+
+[0;36m[STEP][0m 結果ディレクトリを作成中...
+[0;32m[SUCCESS][0m 結果ディレクトリ作成完了: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825
+
+[0;36m[STEP][0m 全レビューを並列実行中（24回のレビュー）...
+
+[0;35m━━━ Phase 1: 自己レビュー（8回並列）━━━[0m
+
+[0;34m[INFO][0m Phase 1: 8つの自己レビュープロセスの完了を待機中...
+
+[0;36m[STEP][0m [自己レビュー] 1-multi
+[0;34m[INFO][0m Git初期化: 1-multi
+
+[0;36m[STEP][0m [自己レビュー] 2-claude
+[0;34m[INFO][0m Git初期化: 2-claude
+
+[0;36m[STEP][0m [自己レビュー] 3-codex
+
+[0;36m[STEP][0m [自己レビュー] 4-gemini
+[0;34m[INFO][0m Git初期化: 4-gemini
+[0;34m[INFO][0m Git初期化: 3-codex
+
+[0;36m[STEP][0m [自己レビュー] 5-amp
+
+[0;34m[INFO][0m Git初期化: 5-amp
+[0;36m[STEP][0m [自己レビュー] 7-cursor
+[0;34m[INFO][0m Git初期化: 7-cursor
+
+[0;36m[STEP][0m [自己レビュー] 8-qwen
+
+[0;36m[STEP][0m [自己レビュー] 6-droid
+[0;34m[INFO][0m Git初期化: 8-qwen
+[0;34m[INFO][0m Git初期化: 6-droid
+[0;32m[SUCCESS][0m Git初期化完了: 4-gemini
+[0;32m[SUCCESS][0m Git初期化完了: 7-cursor
+[0;32m[SUCCESS][0m Git初期化完了: 2-claude
+[0;32m[SUCCESS][0m Git初期化完了: 3-codex
+[0;32m[SUCCESS][0m Git初期化完了: 5-amp
+[0;32m[SUCCESS][0m Git初期化完了: 1-multi
+[0;32m[SUCCESS][0m Git初期化完了: 6-droid
+[0;32m[SUCCESS][0m Git初期化完了: 8-qwen
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/gemini-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/amp-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/codex-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/cursor-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/multi-ai-review.sh --type all --timeout 900 --output-dir /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/droid-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/qwen-review.sh  --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews --commit HEAD
+╔════════════════════════════════════════╗
+║  Claude Code Review Integration v1.0.0 ║
+║  Multi-AI + VibeLogger                 ║
+╚════════════════════════════════════════╝
+
+╔════════════════════════════════════════╗
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+║  Codex Review Integration v2.0         ║
+║  7AI + VibeLogger                      ║
+╚════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Codex CLI is available[0m
+╔════════════════════════════════════════╗
+║  Cursor DX Review v1.0.0               ║
+║  Multi-AI + VibeLogger + REVIEW-PROMPT ║
+╚════════════════════════════════════════╝
+
+╔════════════════════════════════════════╗
+║  Amp PM Review v1.0.0                  ║
+║  Multi-AI + VibeLogger + REVIEW-PROMPT ║
+╚════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Cursor wrapper is available[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Amp wrapper is available[0m
+╔════════════════════════════════════════╗
+║  Gemini Security Review v1.0.0         ║
+║  Multi-AI + VibeLogger + REVIEW-PROMPT ║
+╚════════════════════════════════════════╝
+
+Running all review types in parallel...
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Gemini wrapper is available[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+╔════════════════════════════════════════╗
+║  Droid Enterprise Review v1.0.0        ║
+║  Multi-AI + VibeLogger + REVIEW-PROMPT ║
+╚════════════════════════════════════════╝
+
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Droid wrapper is available[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+╔════════════════════════════════════════╗
+║  Qwen Code Quality Review v1.0.0       ║
+║  Multi-AI + VibeLogger + REVIEW-PROMPT ║
+╚════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Qwen wrapper is available[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+=== Code Quality Review Starting ===
+Commit: c08a599a963f473e08a516eb1acebeec21df37a6
+Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews
+
+=== Enterprise Production Readiness Review Starting ===
+Commit: c08a599a963f473e08a516eb1acebeec21df37a6
+Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews
+
+=== Security Review Starting ===
+Commit: c08a599a963f473e08a516eb1acebeec21df37a6
+Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews
+
+
+[0;32m✅ Qwen quality review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_f256d40_qwen.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_f256d40_qwen.md
+[0;32m[SUCCESS][0m 自己レビュー完了: 8-qwen
+Error: AI execution failed with code 124
+✗ Primary review (Gemini) failed
+Primary AI (Gemini) failed or timed out. Falling back to Claude Security...
+[0;34mℹ️  Claude review completed successfully[0m
+
+[0;32m✅ Claude Code review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223848_8da96b7_claude.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223848_8da96b7_claude.md
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_8da96b7_claude.log
+[0;32m[SUCCESS][0m 自己レビュー完了: 2-claude
+
+[0;32m✅ Amp PM review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_4def1d7_amp.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_4def1d7_amp.md
+[0;32m[SUCCESS][0m 自己レビュー完了: 5-amp
+
+[0;32m✅ Gemini security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_74b55c1_gemini.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_74b55c1_gemini.md
+[0;32m[SUCCESS][0m 自己レビュー完了: 4-gemini
+Warning: Review output contains error indicators
+{
+  "findings": [
+    {
+      "title": "[P2] Insufficient XSS protection in sanitize() function",
+      "body": "The `sanitize()` function uses basic HTML entity encoding but doesn't handle all XSS vectors. Specifically, it doesn't protect against event handler attributes (e.g., `onclick=\"alert(1)\"`), `javascript:` URLs, or SVG-based XSS. While the HTML tag removal helps, an attacker could potentially inject malicious content through task titles that gets rendered. Consider using a well-tested library like DOMPurify for comprehensive XSS protection, or at minimum, validate input length and character whitelist more strictly.",
+      "confidence_score": 0.75,
+      "priority": 2,
+      "code_location": {
+        "absolute_file_path": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js",
+        "line_range": {"start": 113, "end": 126}
+      }
+    },
+    {
+      "title": "[P1] localStorage data can be accessed by any script on same origin",
+      "body": "All sensitive application data (tasks, timer state, settings, history) is stored in localStorage without any encryption or access controls. If an XSS vulnerability exists elsewhere on the same origin, an attacker could read all user data including task contents, work patterns, and usage history. While localStorage is appropriate for non-sensitive data, consider warning users not to store confidential information in task titles, or implement client-side encryption for sensitive fields using Web Crypto API.",
+      "confidence_score": 0.85,
+      "priority": 1,
+      "code_location": {
+        "absolute_file_path": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js",
+        "line_range": {"start": 747, "end": 752}
+      }
+    },
+    {
+      "title": "[P2] No rate limiting on task creation enables DoS via storage exhaustion",
+      "body": "The `handleTaskSubmit()` function allows unlimited task creation without any rate limiting or maximum task count validation. A malicious user or script could rapidly create thousands of tasks to exhaust localStorage quota (typically 5-10MB), causing storage errors and application failure for the user. Implement a maximum task count limit (e.g., 1000 tasks) and consider rate limiting task creation to prevent abuse.",
+      "confidence_score": 0.8,
+      "priority": 2,
+      "code_location": {
+        "absolute_file_path": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js",
+        "line_range": {"start": 128, "end": 171}
+      }
+    },
+    {
+      "title": "[P3] Notification permission request could be abused for user annoyance",
+      "body": "In `startTimer()`, the code requests notification permission without explicit user consent or explanation (line 505). While not a direct security vulnerability, this could be perceived as intrusive and may train users to accept permission requests without consideration. Best practice is to explain why notifications are needed before requesting permission, and only request when the user explicitly opts in via a settings UI.",
+      "confidence_score": 0.65,
+      "priority": 3,
+      "code_location": {
+        "absolute_file_path": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js",
+        "line_range": {"start": 503, "end": 507}
+      }
+    },
+    {
+      "title": "[P2] Audio context creation could enable audio-based timing attacks",
+      "body": "The `playNotificationSound()` function creates a Web Audio API context and generates audio programmatically. While the current implementation is benign, Web Audio API can be used for high-resolution timing attacks and browser fingerprinting. Consider adding a user preference to completely disable audio features, and ensure audio playback cannot be triggered by untrusted input or at excessive rates.",
+      "confidence_score": 0.55,
+      "priority": 2,
+      "code_location": {
+        "absolute_file_path": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js",
+        "line_range": {"start": 638, "end": 658}
+      }
+    },
+    {
+      "title": "[P3] Error messages expose implementation details",
+      "body": "The `handleStorageError()` function reveals specific error types (QuotaExceededError) to users, which could help attackers understand the application's storage architecture. While this is minor, production applications should use generic error messages to users while logging detailed errors for developers. Consider replacing specific error codes with user-friendly messages like 'Unable to save data' without revealing the underlying cause.",
+      "confidence_score": 0.45,
+      "priority": 3,
+      "code_location": {
+        "absolute_file_path": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js",
+        "line_range": {"start": 805, "end": 811}
+      }
+    }
+  ],
+  "overall_correctness": "patch is correct",
+  "overall_explanation": "The implementation demonstrates good security awareness with input sanitization, proper use of strict mode, and Content Security Policy-friendly code (no eval, inline handlers). The sanitize() function shows security consciousness, though it could be stronger. No critical security vulnerabilities that would prevent deployment were found. The main concerns are around XSS protection depth and localStorage exposure, which are common in client-side applications and acceptable for a task management app handling non-confidential data. The code is production-ready with recommended improvements.",
+  "overall_confidence_score": 0.85
+}
+✓ Fallback review (Claude Security) completed successfully
+
+=== Generating Reports ===
+Converting file paths to relative...
+✓ File paths converted to relative
+Markdown report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/claude-security-review.md
+SARIF report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/claude-security-review.sarif
+✓ JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/claude-security-review.json
+
+=== Security Review Completed ===
+Results saved to: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews
+
+[0;32m✅ Cursor DX review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_d6bfeca_cursor.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_d6bfeca_cursor.md
+[0;32m[SUCCESS][0m 自己レビュー完了: 7-cursor
+DEBUG: Review output length: 9472 bytes
+DEBUG: First 200 chars of review_output:
+{
+  "findings": [
+    {
+      "title": "[P2] Remove duplicate code in app.js and app.testable.js",
+      "body": "The same functions (`sanitize`, `formatTime`, `formatRelativeTime`, etc.) are duplicat
+DEBUG: Validation succeeded!
+✓ Primary review (Claude) completed successfully
+
+=== Generating Reports ===
+Converting file paths to relative...
+✓ File paths converted to relative
+Markdown report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/claude-review.md
+✓ JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/claude-review.json
+
+=== Code Quality Review Completed ===
+Results saved to: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews
+{"findings":[{"title":"[P1] Avoid double-escaping task titles","body":"The new sanitizer now escapes `&`, `<`, `>` and quotes, but we call it before persisting user input (`const title = sanitize(...)`) and again when rendering via `textContent`. This double pass causes legitimate characters to be corrupted, e.g. entering `Chris's plan` is stored as `Chris&#x27;s plan`, and then re-sanitized to `Chris&amp;#x27;s plan`, which is exactly what users see in the UI and in prompts. The regression affects any title containing `&`, quotes, or angle brackets and persists across reloads, so it is a high-severity data-integrity bug that needs to be fixed before release.","confidence_score":0.4,"priority":1,"code_location":{"absolute_file_path":"app.js","line_range":{"start":76,"end":90}},"compliance_checklist":[]}],"overall_correctness":"patch is incorrect","overall_explanation":"Storing double-escaped task titles corrupts legitimate user input containing characters like ampersands or apostrophes, producing incorrect output throughout the UI; this regression must be resolved before the release can be considered correct.","overall_confidence_score":0.4,"sla_metrics":{"availability":"n/a","performance":"n/a","reliability":"Impacted by user-visible data corruption for valid inputs"},"compliance_status":"non-compliant: user input integrity regression","risk_assessment":"medium"}
+✓ Primary review (Droid) completed successfully
+
+=== Generating Reports ===
+Converting file paths to relative...
+✓ File paths converted to relative
+Markdown report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/droid-review.md
+HTML audit report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/droid-review.html
+✓ JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/droid-review.json
+
+=== Enterprise Production Readiness Review Completed ===
+Results saved to: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews
+Audit trail: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/audit-trail.log
+
+=== Review Results ===
+Security Review:    ✓ PASSED
+Quality Review:     ✓ PASSED
+Enterprise Review:  ✓ PASSED
+
+=== Generating Unified Reports ===
+✓ Unified JSON report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/unified-review.json
+✓ Unified HTML report generated: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/unified-review.html
+
+=== Unified Reports Generated ===
+JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/unified-review.json
+HTML: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/unified-review.html
+
+[0;32m[SUCCESS][0m 自己レビュー完了: 1-multi
+[0;34mℹ️  Codex review completed successfully[0m
+
+[0;32m✅ Codex review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_224028_7171739_codex.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_224028_7171739_codex.md
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_7171739_codex.log
+[0;32m[SUCCESS][0m 自己レビュー完了: 3-codex
+
+[0;32m✅ Droid enterprise review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_b2afeaa_droid.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_b2afeaa_droid.md
+[0;32m[SUCCESS][0m 自己レビュー完了: 6-droid
+[0;34m[INFO][0m Phase 1 完了: 成功 8 / 失敗 0
+
+[0;35m━━━ Phase 2: CodeRabbit共通レビュー（8回並列）━━━[0m
+
+[0;34m[INFO][0m Phase 2: 8つのCodeRabbitレビュープロセスの完了を待機中...
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 1-multi
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 2-claude
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 3-codex
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 4-gemini
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 6-droid
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 5-amp
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 7-cursor
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:coderabbit] 8-qwen
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/coderabbit-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit --commit HEAD
+[0;34mℹ️  Checking prerequisites...[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Git repository detected[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Target commit: c08a599 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ Target commit: 74b55c1 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ Target commit: 4def1d7 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ Target commit: 7171739 (HEAD)[0m
+[0;32m✅ Target commit: b2afeaa (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ Target commit: 8da96b7 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ Target commit: f256d40 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ Target commit: d6bfeca (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+[0;32m✅ CodeRabbit CLI found: 0.3.0[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+ℹ️  Using alternative implementation (git diff + AI analysis)
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+ℹ️  Using alternative implementation (git diff + AI analysis)
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+ℹ️  Using alternative implementation (git diff + AI analysis)
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_f256d40_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224201_f256d40_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224201_f256d40_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224201_f256d40_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224201_f256d40_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_f256d40_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224201_f256d40_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224201_f256d40_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224201_f256d40_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 8-qwen
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_d6bfeca_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224214_d6bfeca_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224214_d6bfeca_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224214_d6bfeca_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224214_d6bfeca_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_d6bfeca_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224214_d6bfeca_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224214_d6bfeca_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224214_d6bfeca_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 7-cursor
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_c08a599_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_c08a599_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_c08a599_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224215_c08a599_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224215_c08a599_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_c08a599_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_c08a599_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_c08a599_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_c08a599_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 1-multi
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_74b55c1_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224215_74b55c1_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224215_74b55c1_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_74b55c1_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 4-gemini
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_7171739_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224219_7171739_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224219_7171739_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_7171739_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 3-codex
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_b2afeaa_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224233_b2afeaa_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224233_b2afeaa_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224233_b2afeaa_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224233_b2afeaa_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_b2afeaa_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224233_b2afeaa_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224233_b2afeaa_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224233_b2afeaa_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 6-droid
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_4def1d7_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224241_4def1d7_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224241_4def1d7_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224241_4def1d7_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224241_4def1d7_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_4def1d7_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224241_4def1d7_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224241_4def1d7_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224241_4def1d7_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 5-amp
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_8da96b7_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224320_8da96b7_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224320_8da96b7_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224320_8da96b7_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224320_8da96b7_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_8da96b7_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224320_8da96b7_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224320_8da96b7_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224320_8da96b7_alt.md
+
+[0;32m[SUCCESS][0m 共通レビュー完了 (coderabbit): 2-claude
+[0;34m[INFO][0m Phase 2 完了: 成功 8 / 失敗 0
+
+[0;35m━━━ Phase 3: Claude Security共通レビュー（8回並列）━━━[0m
+
+[0;34m[INFO][0m Phase 3: 8つのセキュリティレビュープロセスの完了を待機中...
+
+[0;36m[STEP][0m [共通レビュー:security] 1-multi
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+
+
+[0;36m[STEP][0m [共通レビュー:security] 4-gemini
+[0;36m[STEP][0m [共通レビュー:security] 2-claude
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:security] 5-amp
+
+[0;36m[STEP][0m [共通レビュー:security] 7-cursor
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:security] 6-droid
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:security] 3-codex
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+
+[0;36m[STEP][0m [共通レビュー:security] 8-qwen
+[0;34m[INFO][0m 実行中: bash /home/ryu/projects/comparison-pomodoro-todo/scripts/claude-security-review.sh --timeout 900 --output /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security --commit HEAD
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;32m✅ Claude wrapper is available[0m
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_8da96b7_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_8da96b7_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_8da96b7_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_8da96b7_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 2-claude
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_4def1d7_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_4def1d7_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_4def1d7_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_4def1d7_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 5-amp
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_74b55c1_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_74b55c1_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_74b55c1_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_74b55c1_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 4-gemini
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_b2afeaa_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_b2afeaa_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_b2afeaa_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_b2afeaa_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 6-droid
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_f256d40_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_f256d40_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_f256d40_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_f256d40_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 8-qwen
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_d6bfeca_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_d6bfeca_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_d6bfeca_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_d6bfeca_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 7-cursor
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_7171739_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_7171739_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_7171739_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_7171739_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 3-codex
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_c08a599_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_c08a599_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_c08a599_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_c08a599_security.log
+[0;32m[SUCCESS][0m 共通レビュー完了 (security): 1-multi
+[0;34m[INFO][0m Phase 3 完了: 成功 8 / 失敗 0
+
+[0;32m[SUCCESS][0m 全フェーズ並列実行完了: 成功 24 / 失敗 0 / 所要時間 299秒
+
+[0;36m[STEP][0m 結果を集計中...
+[0;32m[SUCCESS][0m 集計レポート生成完了: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/summary/comparison-report.md
+
+[0;36m[STEP][0m 実験結果
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Self-Review Experiment - 実行完了
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+結果ディレクトリ:
+  /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825
+
+集計レポート:
+  /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/summary/comparison-report.md
+
+個別レビュー結果:
+  自己レビュー:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/
+  CodeRabbit:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/
+  Security:        /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/
+
+ステータスサマリー:
+
+  Phase 1: 自己レビュー
+    8-qwen: SUCCESS
+    2-claude: SUCCESS
+    5-amp: SUCCESS
+    4-gemini: SUCCESS
+    7-cursor: SUCCESS
+    1-multi: SUCCESS
+    3-codex: SUCCESS
+    6-droid: SUCCESS
+
+  Phase 2: CodeRabbit共通レビュー
+    8-qwen: SUCCESS
+    7-cursor: SUCCESS
+    1-multi: SUCCESS
+    4-gemini: SUCCESS
+    3-codex: SUCCESS
+    6-droid: SUCCESS
+    5-amp: SUCCESS
+    2-claude: SUCCESS
+
+  Phase 3: Claude Security共通レビュー
+    2-claude: SUCCESS
+    5-amp: SUCCESS
+    4-gemini: SUCCESS
+    6-droid: SUCCESS
+    8-qwen: SUCCESS
+    7-cursor: SUCCESS
+    3-codex: SUCCESS
+    1-multi: SUCCESS
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[0;32m[SUCCESS][0m 実験完了！24回のレビューが完了しました。

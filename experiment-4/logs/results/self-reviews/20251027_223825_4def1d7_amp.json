@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-10-27T13:39:11Z",
+  "commit": "HEAD",
+  "commit_short": "4def1d7",
+  "review_type": "amp_pm",
+  "findings": [],
+  "analysis": {
+    "documentation_mentions": 12,
+    "communication_mentions": 6,
+    "risk_mentions": 3
+  },
+  "overall_correctness": "unknown",
+  "overall_explanation": "Amp returned non-JSON output. See raw text file for details.",
+  "overall_confidence_score": 0.5,
+  "raw_output_file": "/home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_4def1d7_amp.txt"
+}

@@ -1,0 +1,41 @@
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Target commit: 7171739 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ CodeRabbit CLI found: Failed to cleanup old logs: 300 | For example, you can use the \`pathToFileURL()\` method of the \`url\` core module.`);if(pK(A,_))throw TypeError(`The \`${g}: { file: '...' }\` option must be used instead of \`${g}: '...'\`.`)},uwA=(A,_)=>{if(!_)return;let g=A.find(({type:B})=>Az.has(B));if(g!==void 0)throw TypeError(`The \`${g.optionName}\` option cannot use both files and transforms in objectMode.`)},cwA=({initialFileDescriptors:A,addProperties:_,options:g,isSync:B})=>{let D=[];try{for(let Q of A)D.push(awA({fileDescriptor:Q,fileDescriptors:D,addProperties:_,options:g,isSync:B}));return D}catch(Q){throw DG(D),Q}},awA=({fileDescriptor:{direction:A,objectMode:_,stdioItems:g},fileDescriptors:B,addProperties:D,options:Q,isSync:E})=>{let I=g.map((y)=>FwA({stdioItem:y,addProperties:D,direction:A,options:Q,fileDescriptors:B,isSync:E}));return{direction:A,objectMode:_,stdioItems:I}},FwA=({stdioItem:A,addProperties:_,direction:g,options:B,fileDescriptors:D,isSync:Q})=>{let E=wY({stdioItem:A,direction:g,fileDescriptors:D,isSync:Q});if(E!==void 0)ret[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_7171739_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224219_7171739_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224219_7171739_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_7171739_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224219_7171739_alt.md
+

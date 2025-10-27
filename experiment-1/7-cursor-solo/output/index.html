@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ポモドーロタイマー統合型タスク管理アプリ">
+    <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-left">
+            <h1>🍅 PomoTodo</h1>
+            <p class="subtitle">ポモドーロタイマー統合型タスク管理</p>
+        </div>
+        <div class="header-right">
+            <div class="today-stats">
+                <span class="stat-item" id="today-pomodoros">🍅 0</span>
+                <span class="stat-item" id="today-tasks">✓ 0/0</span>
+                <span class="stat-item" id="today-time">0h 0m</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- 左カラム: Todoリスト -->
+        <section class="todo-section">
+            <div class="section-header">
+                <h2>📋 タスクリスト</h2>
+            </div>
+
+            <!-- タスク入力フォーム -->
+            <form class="task-form" id="task-form">
+                <div class="form-group">
+                    <input 
+                        type="text" 
+                        id="task-title-input" 
+                        class="task-input" 
+                        placeholder="新しいタスクを入力..." 
+                        maxlength="100"
+                        required
+                        aria-label="タスク名"
+                    >
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-pomodoros-input">見積もりポモドーロ数</label>
+                        <input 
+                            type="number" 
+                            id="task-pomodoros-input" 
+                            class="pomodoros-input" 
+                            min="1" 
+                            max="20" 
+                            value="1"
+                            aria-label="見積もりポモドーロ数"
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span>➕ 追加</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- フィルタボタン -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="active">未完了</button>
+                <button class="filter-btn" data-filter="completed">完了済み</button>
+            </div>
+
+            <!-- タスクリスト -->
+            <ul class="task-list" id="task-list" role="list">
+                <!-- タスクアイテムは動的に生成 -->
+            </ul>
+
+            <div class="task-list-empty" id="task-list-empty" style="display: none;">
+                <p>📝 タスクがありません</p>
+                <p class="empty-subtitle">新しいタスクを追加してください</p>
+            </div>
+        </section>
+
+        <!-- 右カラム: ポモドーロタイマー -->
+        <section class="timer-section">
+            <div class="section-header">
+                <h2>⏱️ ポモドーロタイマー</h2>
+            </div>
+
+            <!-- タイマー表示 -->
+            <div class="timer-display-container">
+                <div class="timer-mode" id="timer-mode">準備中</div>
+                <div class="timer-display" id="timer-display" aria-live="polite">25:00</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                </div>
+                <div class="current-task" id="current-task">
+                    タスクを選択してください
+                </div>
+            </div>
+
+            <!-- タイマーコントロール -->
+            <div class="timer-controls">
+                <button class="btn btn-timer btn-start" id="start-btn" aria-label="開始">
+                    <span>▶️ 開始</span>
+                </button>
+                <button class="btn btn-timer btn-pause" id="pause-btn" aria-label="一時停止" disabled>
+                    <span>⏸️ 一時停止</span>
+                </button>
+                <button class="btn btn-timer btn-reset" id="reset-btn" aria-label="リセット" disabled>
+                    <span>🔄 リセット</span>
+                </button>
+                <button class="btn btn-timer btn-skip" id="skip-btn" aria-label="スキップ" disabled>
+                    <span>⏭️ スキップ</span>
+                </button>
+            </div>
+
+            <!-- 統計表示 -->
+            <div class="statistics">
+                <h3>📊 今日の統計</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-pomodoros">0</div>
+                        <div class="stat-label">🍅 ポモドーロ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-tasks">0/0</div>
+                        <div class="stat-label">✓ タスク</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-time">0h 0m</div>
+                        <div class="stat-label">⏱️ 作業時間</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 通知エリア -->
+    <div class="notification" id="notification" role="alert" aria-live="polite" style="display: none;"></div>
+
+    <!-- 確認ダイアログ（削除・リセット用） -->
+    <div class="modal" id="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="modal-title">確認</h3>
+            <p id="modal-message">この操作を実行しますか？</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" id="modal-cancel">キャンセル</button>
+                <button class="btn btn-danger" id="modal-confirm">実行</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

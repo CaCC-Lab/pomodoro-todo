@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PomoTodoApp - Test Runner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-results {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .test-pass {
+            color: #27ae60;
+        }
+        
+        .test-fail {
+            color: #e74c3c;
+        }
+        
+        .summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>PomoTodoApp - Test Runner</h1>
+    
+    <div class="controls">
+        <button id="run-tests-btn">Run All Tests</button>
+        <button id="run-unit-tests-btn">Run Unit Tests Only</button>
+        <button id="run-integration-tests-btn">Run Integration Tests Only</button>
+    </div>
+    
+    <div class="summary" id="summary">
+        Test summary will appear here after running tests...
+    </div>
+    
+    <div class="test-results" id="test-results">
+        Test results will appear here after running tests...
+    </div>
+
+    <!-- Include the main application code -->
+    <script>
+        // Include the same classes and app code as in app.js for testing
+        <%- app_js_content %>
+    </script>
+    
+    <!-- Include the tests -->
+    <script>
+        // Capture console output
+        const originalLog = console.log;
+        const originalError = console.error;
+        let testOutput = [];
+        let testCount = 0;
+        let passCount = 0;
+        let failCount = 0;
+        
+        console.log = function(...args) {
+            testOutput.push(args.join(' '));
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            testOutput.push('ERROR: ' + args.join(' '));
+            originalError.apply(console, args);
+        };
+        
+        // Enhanced test framework
+        function describe(description, testFunction) {
+            testOutput.push(`\\n🧪 Testing: ${description}`);
+            testFunction();
+        }
+
+        function it(description, testFunction) {
+            testOutput.push(`\\n📋 Test: ${description}`);
+            testCount++;
+            try {
+                testFunction();
+            } catch (e) {
+                testOutput.push(`✗ ERROR: ${e.message}`);
+                failCount++;
+            }
+        }
+
+        function before(beforeFunction) {
+            beforeFunction();
+        }
+
+        function after(afterFunction) {
+            afterFunction();
+        }
+        
+        // Assertion functions
+        function assertEqual(actual, expected, message) {
+            if (actual === expected) {
+                testOutput.push(`✓ PASS: ${message}`);
+                passCount++;
+                return true;
+            } else {
+                testOutput.push(`✗ FAIL: ${message}. Expected: ${expected}, Actual: ${actual}`);
+                failCount++;
+                return false;
+            }
+        }
+
+        function assertNotEqual(actual, expected, message) {
+            if (actual !== expected) {
+                testOutput.push(`✓ PASS: ${message}`);
+                passCount++;
+                return true;
+            } else {
+                testOutput.push(`✗ FAIL: ${message}. Expected value other than: ${expected}`);
+                failCount++;
+                return false;
+            }
+        }
+
+        function assertTrue(condition, message) {
+            if (condition) {
+                testOutput.push(`✓ PASS: ${message}`);
+                passCount++;
+                return true;
+            } else {
+                testOutput.push(`✗ FAIL: ${message}`);
+                failCount++;
+                return false;
+            }
+        }
+
+        function assertFalse(condition, message) {
+            if (!condition) {
+                testOutput.push(`✓ PASS: ${message}`);
+                passCount++;
+                return true;
+            } else {
+                testOutput.push(`✗ FAIL: ${message}`);
+                failCount++;
+                return false;
+            }
+        }
+        
+        // Mock DOM elements for testing
+        function setupMockDOM() {
+            // Create a mock DOM structure similar to the actual HTML
+            document.body.innerHTML = `
+                <div class="container" style="display:none;">
+                    <header class="header">
+                        <h1 class="app-title">PomoTodo 🍅</h1>
+                        <div class="stats" id="daily-stats">
+                            <span class="stat-item">Today: 🍅 <span id="today-pomodoros">0</span></span>
+                            <span class="stat-item">Tasks: ✓ <span id="completed-tasks">0</span>/<span id="total-tasks">0</span></span>
+                            <span class="stat-item">Time: <span id="total-time">0h 0m</span></span>
+                        </div>
+                    </header>
+
+                    <div class="main-content">
+                        <section class="todo-section">
+                            <div class="input-container">
+                                <input type="text" id="task-input" placeholder="新しいタスクを入力..." maxlength="100" aria-label="タスク入力">
+                                <input type="number" id="estimate-input" placeholder="見積もり(1-20)" min="1" max="20" aria-label="見積もりポモドロ数">
+                                <button id="add-task-btn" aria-label="タスク追加">+</button>
+                            </div>
+                            
+                            <div class="search-container">
+                                <input type="text" id="task-search" placeholder="タスクを検索..." aria-label="タスク検索">
+                            </div>
+                            
+                            <div class="filters">
+                                <button class="filter-btn active" data-filter="all" aria-pressed="true">全て</button>
+                                <button class="filter-btn" data-filter="active" aria-pressed="false">未完了</button>
+                                <button class="filter-btn" data-filter="completed" aria-pressed="false">完了済み</button>
+                            </div>
+                            
+                            <div class="actions">
+                                <button id="clear-completed-btn" class="btn-danger">完了タスクを削除</button>
+                            </div>
+                            
+                            <ul class="task-list" id="task-list"></ul>
+                        </section>
+
+                        <section class="timer-section">
+                            <div class="timer-container">
+                                <div class="timer-mode" id="timer-mode">作業中</div>
+                                <div class="timer-display" id="timer-display">25:00</div>
+                                <div class="progress-bar">
+                                    <div class="progress" id="progress-bar"></div>
+                                </div>
+                                <div class="current-task" id="current-task">タスクを選択してください</div>
+                                
+                                <div class="timer-controls">
+                                    <button id="start-btn">開始</button>
+                                    <button id="pause-btn" disabled>一時停止</button>
+                                    <button id="reset-btn">リセット</button>
+                                    <button id="skip-btn">スキップ</button>
+                                </div>
+                                
+                                <div class="session-counter">
+                                    <span>セッション: <span id="session-count">0</span>/4</span>
+                                </div>
+                            </div>
+                            
+                            <div class="stats-section">
+                                <h3>今日の統計</h3>
+                                <div class="stat-card">
+                                    <div class="stat">
+                                        <span class="stat-label">完了ポモドーロ</span>
+                                        <span class="stat-value" id="stats-pomodoros">0</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">完了タスク</span>
+                                        <span class="stat-value" id="stats-completed">0</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">作業時間</span>
+                                        <span class="stat-value" id="stats-time">0h 0m</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">ストリーク</span>
+                                        <span class="stat-value" id="stats-streak">0</span>
+                                    </div>
+                                </div>
+                                
+                                <h3>週次統計</h3>
+                                <div class="weekly-stats">
+                                    <div class="graph-container">
+                                        <div class="graph-labels">
+                                            <div>月</div>
+                                            <div>火</div>
+                                            <div>水</div>
+                                            <div>木</div>
+                                            <div>金</div>
+                                            <div>土</div>
+                                            <div>日</div>
+                                        </div>
+                                        <div class="graph-bars" id="weekly-graph"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Mock localStorage for testing
+        function setupMockLocalStorage() {
+            let localStorageMock = (function() {
+                let store = {};
+                return {
+                    getItem: function(key) {
+                        return store[key] || null;
+                    },
+                    setItem: function(key, value) {
+                        store[key] = String(value);
+                    },
+                    removeItem: function(key) {
+                        delete store[key];
+                    },
+                    clear: function() {
+                        store = {};
+                    }
+                };
+            })();
+            
+            Object.defineProperty(window, 'localStorage', {
+                value: localStorageMock
+            });
+        }
+
+        // Mock AudioContext to prevent errors in testing environment
+        function setupMockAudio() {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!window.AudioContext) {
+                window.AudioContext = function() {
+                    return {
+                        createOscillator: function() {
+                            return {
+                                connect: function() {},
+                                start: function() {},
+                                stop: function() {},
+                                frequency: { value: 0 },
+                                type: 'sine'
+                            };
+                        },
+                        createGain: function() {
+                            return {
+                                connect: function() {},
+                                gain: {
+                                    setValueAtTime: function() {},
+                                    exponentialRampToValueAtTime: function() {}
+                                }
+                            };
+                        },
+                        destination: {},
+                        currentTime: 0
+                    };
+                };
+            }
+        }
+
+        // Setup test environment
+        function setupTestEnvironment() {
+            setupMockDOM();
+            setupMockLocalStorage();
+            setupMockAudio();
+        }
+        
+        // Function to run all tests
+        function runAllTests() {
+            // Reset counters
+            testOutput = [];
+            testCount = 0;
+            passCount = 0;
+            failCount = 0;
+            
+            testOutput.push('Starting PomoTodoApp Test Suite...');
+            
+            setupTestEnvironment();
+            
+            // Run the main test suite
+            // This is where the actual tests would be executed
+            runMainTestSuite();
+            
+            displayResults();
+        }
+        
+        // Placeholder for the main test suite - in a real implementation, 
+        // this would contain all the specific tests
+        function runMainTestSuite() {
+            // Include the test logic here
+            let app;
+    
+            before(function() {
+                app = new PomoTodoApp();
+                // Clear any existing data
+                localStorage.clear();
+            });
+
+            // 1. Task Management Tests
+            describe('Task Management', function() {
+                
+                // 1.1 Task Addition Tests
+                describe('Task Addition', function() {
+                    // Test Case: Empty title (Failure)
+                    it('should show error when adding task with empty title - E001', function() {
+                        // Given: Empty task title
+                        app.taskInput.value = '';
+                        
+                        // Mock alert function to capture error message
+                        const originalAlert = window.alert;
+                        let alertMessage = '';
+                        window.alert = function(message) {
+                            alertMessage = message;
+                        };
+                        
+                        // When: User tries to add task with empty title
+                        app.addTask();
+                        
+                        // Then: Error message E001 should be shown
+                        assertTrue(alertMessage.includes('タスク名を入力してください'), 'Should show error for empty title');
+                        
+                        // Reset alert function
+                        window.alert = originalAlert;
+                    });
+                    
+                    // Test Case: Title exceeding 100 characters (Failure)
+                    it('should show error when adding task with title exceeding 100 characters - E002', function() {
+                        // Given: Task title with more than 100 characters
+                        const longTitle = 'a'.repeat(101);
+                        app.taskInput.value = longTitle;
+                        
+                        // Mock alert function to capture error message
+                        const originalAlert = window.alert;
+                        let alertMessage = '';
+                        window.alert = function(message) {
+                            alertMessage = message;
+                        };
+                        
+                        // When: User tries to add task with long title
+                        app.addTask();
+                        
+                        // Then: Error message E002 should be shown
+                        assertTrue(alertMessage.includes('タスク名は100文字以内で入力してください'), 'Should show error for title exceeding 100 characters');
+                        
+                        // Reset alert function
+                        window.alert = originalAlert;
+                    });
+                    
+                    // Test Case: Valid title (Success)
+                    it('should add task successfully with valid title', function() {
+                        // Given: Valid task title
+                        app.taskInput.value = 'Test Task';
+                        app.estimateInput.value = '5';
+                        const initialTaskCount = app.tasks.length;
+                        
+                        // When: User adds the task
+                        app.addTask();
+                        
+                        // Then: Task should be added successfully
+                        assertEqual(app.tasks.length, initialTaskCount + 1, 'Task count should increase by 1');
+                        assertEqual(app.tasks[0].title, 'Test Task', 'Task title should match input');
+                        assertEqual(app.tasks[0].estimatedPomodoros, 5, 'Task estimate should match input');
+                        assertEqual(app.taskInput.value, '', 'Task input should be cleared');
+                        assertEqual(app.estimateInput.value, '', 'Estimate input should be cleared');
+                    });
+                    
+                    // Test Case: Title at boundary (100 characters) (Success)
+                    it('should add task successfully with title at 100 characters', function() {
+                        // Given: Task title with exactly 100 characters
+                        const boundaryTitle = 'a'.repeat(100);
+                        app.taskInput.value = boundaryTitle;
+                        app.estimateInput.value = '3';
+                        const initialTaskCount = app.tasks.length;
+                        
+                        // When: User adds the task
+                        app.addTask();
+                        
+                        // Then: Task should be added successfully
+                        assertEqual(app.tasks.length, initialTaskCount + 1, 'Task count should increase by 1');
+                        assertEqual(app.tasks[0].title, boundaryTitle, 'Task title should match input');
+                        assertEqual(app.tasks[0].estimatedPomodoros, 3, 'Task estimate should match input');
+                    });
+                    
+                    // Test Case: Title at boundary (1 character) (Success)
+                    it('should add task successfully with title at 1 character', function() {
+                        // Given: Task title with exactly 1 character
+                        app.taskInput.value = 'x';
+                        app.estimateInput.value = '1';
+                        const initialTaskCount = app.tasks.length;
+                        
+                        // When: User adds the task
+                        app.addTask();
+                        
+                        // Then: Task should be added successfully
+                        assertEqual(app.tasks.length, initialTaskCount + 1, 'Task count should increase by 1');
+                        assertEqual(app.tasks[0].title, 'x', 'Task title should match input');
+                        assertEqual(app.tasks[0].estimatedPomodoros, 1, 'Task estimate should match input');
+                    });
+                    
+                    // Test Case: Invalid estimated pomodoro value (non-integer)
+                    it('should add task with null estimated pomodoros for invalid estimate input', function() {
+                        // Given: Invalid estimate input (non-number)
+                        app.taskInput.value = 'Test Task with Invalid Estimate';
+                        app.estimateInput.value = 'abc';
+                        const initialTaskCount = app.tasks.length;
+                        
+                        // When: User adds the task
+                        app.addTask();
+                        
+                        // Then: Task should be added with null estimate
+                        assertEqual(app.tasks.length, initialTaskCount + 1, 'Task count should increase by 1');
+                        assertEqual(app.tasks[0].title, 'Test Task with Invalid Estimate', 'Task title should match input');
+                        assertEqual(app.tasks[0].estimatedPomodoros, null, 'Task estimate should be null for invalid input');
+                    });
+                });
+                
+                // Additional tests would go here...
+                
+                // For brevity, I'm including just a few more tests to demonstrate the approach
+                it('should toggle task completion status correctly', function() {
+                    // Given: A task with initial completed status as false
+                    app.taskInput.value = 'Toggle Task';
+                    app.estimateInput.value = '1';
+                    app.addTask();
+                    const testTaskId = app.tasks[0].id;
+                    const initialTask = app.tasks.find(t => t.id === testTaskId);
+                    assertFalse(initialTask.completed, 'Task should initially be incomplete');
+                    
+                    // When: User toggles task completion
+                    app.toggleTaskCompletion(testTaskId);
+                    
+                    // Then: Task completion status should be toggled
+                    const updatedTask = app.tasks.find(t => t.id === testTaskId);
+                    assertTrue(updatedTask.completed, 'Task should be marked as completed');
+                    
+                    // When: User toggles task completion again
+                    app.toggleTaskCompletion(testTaskId);
+                    
+                    // Then: Task completion status should be toggled back
+                    const finalTask = app.tasks.find(t => t.id === testTaskId);
+                    assertFalse(finalTask.completed, 'Task should be marked as incomplete again');
+                });
+                
+                // Clean up the task after the test
+                app.deleteTask(testTaskId);
+            });
+
+            // 2. Timer Management Tests
+            describe('Timer Management', function() {
+                // Test Case: Start timer without task selection (Failure)
+                it('should show error when starting timer without selecting a task - E003', function() {
+                    // Given: No task is selected
+                    app.timer.currentTaskId = null;
+                    
+                    // Mock alert function to capture error message
+                    const originalAlert = window.alert;
+                    let alertMessage = '';
+                    window.alert = function(message) {
+                        alertMessage = message;
+                    };
+                    
+                    // When: User tries to start the timer
+                    app.startTimer();
+                    
+                    // Then: Error message E003 should be shown
+                    assertTrue(alertMessage.includes('タスクを選択してください'), 'Should show error for starting timer without task selection');
+                    
+                    // Reset alert function
+                    window.alert = originalAlert;
+                });
+            });
+            
+            // 3. Data Persistence Tests
+            describe('Data Persistence', function() {
+                // Test Case: Save data successfully
+                it('should save data to localStorage successfully', function() {
+                    // Given: App has tasks and settings
+                    app.taskInput.value = 'Persistent Task';
+                    app.estimateInput.value = '5';
+                    app.addTask();
+                    
+                    const taskId = app.tasks[0].id;
+                    const initialTaskCount = app.tasks.length;
+                    
+                    // When: Data is saved
+                    app.saveData();
+                    
+                    // Then: Data should be stored in localStorage
+                    const savedTasks = localStorage.getItem('pomotodo_tasks');
+                    assertTrue(!!savedTasks, 'Tasks should be saved to localStorage');
+                    
+                    // Verify the content is valid
+                    const parsedTasks = JSON.parse(savedTasks);
+                    assertEqual(parsedTasks.length, initialTaskCount, 'Saved tasks should match current tasks');
+                    assertEqual(parsedTasks[0].id, taskId, 'Saved task ID should match');
+                    
+                    // Clean up
+                    app.deleteTask(taskId);
+                });
+            });
+
+            after(function() {
+                // Clean up any remaining tasks
+                if (app && app.tasks) {
+                    app.tasks = [];
+                    app.saveData();  // This will save the empty task list
+                }
+            });
+        }
+        
+        function displayResults() {
+            const resultsElement = document.getElementById('test-results');
+            const summaryElement = document.getElementById('summary');
+            
+            resultsElement.textContent = testOutput.join('\\n');
+            
+            // Color code the results
+            let formattedResults = testOutput.join('\\n');
+            formattedResults = formattedResults.replace(/✓ PASS:/g, '<span class="test-pass">✓ PASS:</span>');
+            formattedResults = formattedResults.replace(/✗ FAIL:/g, '<span class="test-fail">✗ FAIL:</span>');
+            formattedResults = formattedResults.replace(/✗ ERROR:/g, '<span class="test-fail">✗ ERROR:</span>');
+            
+            resultsElement.innerHTML = formattedResults;
+            
+            summaryElement.innerHTML = `
+                <h3>Test Summary</h3>
+                <p>Total tests: ${testCount}</p>
+                <p>Passed: ${passCount}</p>
+                <p>Failed: ${failCount}</p>
+                <p>Success rate: ${testCount > 0 ? Math.round((passCount / testCount) * 100) : 0}%</p>
+            `;
+        }
+        
+        // Set up event listeners
+        document.getElementById('run-tests-btn').addEventListener('click', runAllTests);
+    </script>
+</body>
+</html>

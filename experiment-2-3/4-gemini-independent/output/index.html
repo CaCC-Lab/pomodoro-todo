@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PomoTodo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>PomoTodo</h1>
+        <div id="stats-container">
+            <!-- 今日の統計はここに表示 -->
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="todo-section" class="column">
+            <h2>Todoリスト</h2>
+            <form id="task-form">
+                <input type="text" id="task-input" placeholder="新しいタスクを追加..." maxlength="100">
+                <button type="submit">追加</button>
+            </form>
+            <div id="task-filters">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="active">未完了</button>
+                <button class="filter-btn" data-filter="completed">完了済み</button>
+            </div>
+            <ul id="task-list">
+                <!-- タスクはここに表示 -->
+            </ul>
+        </section>
+
+        <section id="timer-section" class="column">
+            <h2>ポモドーロタイマー</h2>
+            <div id="timer">
+                <div id="timer-mode">作業中</div>
+                <div id="timer-display" aria-live="polite">25:00</div>
+                <div id="progress-bar"></div>
+                <div id="current-task-display">タスクを選択してください</div>
+            </div>
+            <div id="timer-controls">
+                <button id="start-btn">開始</button>
+                <button id="pause-btn">一時停止</button>
+                <button id="reset-btn">リセット</button>
+                <button id="skip-btn">スキップ</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

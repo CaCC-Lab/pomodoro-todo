@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PomoTodo - ポモドーロタイマー統合型タスク管理アプリ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1 class="app-title">PomoTodo 🍅</h1>
+            <div class="stats" id="daily-stats">
+                <span class="stat-item">Today: 🍅 <span id="today-pomodoros">0</span></span>
+                <span class="stat-item">Tasks: ✓ <span id="completed-tasks">0</span>/<span id="total-tasks">0</span></span>
+                <span class="stat-item">Time: <span id="total-time">0h 0m</span></span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Todo List Section (Left Column) -->
+            <section class="todo-section">
+                <div class="input-container">
+                    <input type="text" id="task-input" placeholder="新しいタスクを入力..." maxlength="100" aria-label="タスク入力">
+                    <input type="number" id="estimate-input" placeholder="見積もり(1-20)" min="1" max="20" aria-label="見積もりポモドロ数">
+                    <button id="add-task-btn" aria-label="タスク追加">+</button>
+                </div>
+                
+                <div class="search-container">
+                    <input type="text" id="task-search" placeholder="タスクを検索..." aria-label="タスク検索">
+                </div>
+                
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all" aria-pressed="true">全て</button>
+                    <button class="filter-btn" data-filter="active" aria-pressed="false">未完了</button>
+                    <button class="filter-btn" data-filter="completed" aria-pressed="false">完了済み</button>
+                </div>
+                
+                <div class="actions">
+                    <button id="clear-completed-btn" class="btn-danger">完了タスクを削除</button>
+                </div>
+                
+                <ul class="task-list" id="task-list">
+                    <!-- Tasks will be added here dynamically -->
+                </ul>
+            </section>
+
+            <!-- Timer Section (Right Column) -->
+            <section class="timer-section">
+                <div class="timer-container">
+                    <div class="timer-mode" id="timer-mode">作業中</div>
+                    <div class="timer-display" id="timer-display">25:00</div>
+                    <div class="progress-bar">
+                        <div class="progress" id="progress-bar"></div>
+                    </div>
+                    <div class="current-task" id="current-task">タスクを選択してください</div>
+                    
+                    <div class="timer-controls">
+                        <button id="start-btn">開始</button>
+                        <button id="pause-btn" disabled>一時停止</button>
+                        <button id="reset-btn">リセット</button>
+                        <button id="skip-btn">スキップ</button>
+                    </div>
+                    
+                    <div class="session-counter">
+                        <span>セッション: <span id="session-count">0</span>/4</span>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <h3>今日の統計</h3>
+                    <div class="stat-card">
+                        <div class="stat">
+                            <span class="stat-label">完了ポモドーロ</span>
+                            <span class="stat-value" id="stats-pomodoros">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">完了タスク</span>
+                            <span class="stat-value" id="stats-completed">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">作業時間</span>
+                            <span class="stat-value" id="stats-time">0h 0m</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">ストリーク</span>
+                            <span class="stat-value" id="stats-streak">0</span>
+                        </div>
+                    </div>
+                    
+                    <h3>週次統計</h3>
+                    <div class="weekly-stats">
+                        <div class="graph-container">
+                            <div class="graph-labels">
+                                <div>月</div>
+                                <div>火</div>
+                                <div>水</div>
+                                <div>木</div>
+                                <div>金</div>
+                                <div>土</div>
+                                <div>日</div>
+                            </div>
+                            <div class="graph-bars" id="weekly-graph">
+                                <!-- Graph bars will be added dynamically -->
+                            </div>
+                        </div>
+                        <div class="graph-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: var(--primary-blue);"></div>
+                                <span>ポモドーロ数</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

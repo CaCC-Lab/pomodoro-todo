@@ -1,0 +1,17 @@
+╔════════════════════════════════════════════════╗
+║  Claude Security Review Integration v1.0.0     ║
+║  OWASP Top 10 + CWE + VibeLogger              ║
+╚════════════════════════════════════════════════╝
+
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Claude wrapper is available[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;32m✅ Output directory: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security[0m
+
+[0;32m✅ Security review complete![0m
+
+[0;34mℹ️  Results:[0m
+  - JSON: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_d6bfeca_security.json
+  - Markdown: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_d6bfeca_security.md
+  - SARIF: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224324_d6bfeca_security.sarif
+  - Log: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_d6bfeca_security.log

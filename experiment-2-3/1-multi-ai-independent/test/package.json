@@ -1,0 +1,17 @@
+{
+  "name": "pomodoro-todo-app-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive Jest tests for Pomodoro + Todo application",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "test:unit": "jest unit/",
+    "test:integration": "jest integration/"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}

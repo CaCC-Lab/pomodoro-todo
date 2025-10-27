@@ -1,0 +1,10 @@
+{
+  "timestamp": "2025-10-27T13:43:24Z",
+  "commit": "HEAD",
+  "commit_short": "b2afeaa",
+  "scan_type": "security",
+  "min_severity": "Low",
+  "total_vulnerabilities": 0
+0,
+  "log_file": "/home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/security/20251027_224320_b2afeaa_security.log"
+}

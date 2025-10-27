@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-AI Code Review Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .summary-card { padding: 15px; border-radius: 5px; border-left: 4px solid #4CAF50; background: #f9f9f9; }
+        .summary-card h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; }
+        .summary-card .value { font-size: 24px; font-weight: bold; color: #333; }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin: 20px 0; }
+        .tab { padding: 10px 20px; cursor: pointer; background: #f0f0f0; border: none; margin-right: 5px; border-radius: 5px 5px 0 0; }
+        .tab.active { background: #4CAF50; color: white; }
+        .tab-content { display: none; padding: 20px 0; }
+        .tab-content.active { display: block; }
+        .finding { border-left: 4px solid #ff9800; padding: 15px; margin: 10px 0; background: #fff9f0; border-radius: 4px; }
+        .finding.P0 { border-left-color: #f44336; background: #ffebee; }
+        .finding.P1 { border-left-color: #ff9800; background: #fff3e0; }
+        .finding.P2 { border-left-color: #ffc107; background: #fffde7; }
+        .finding .title { font-weight: bold; color: #333; margin-bottom: 8px; }
+        .finding .body { color: #666; margin: 8px 0; white-space: pre-wrap; }
+        .finding .location { color: #999; font-size: 12px; font-family: monospace; }
+        .status-correct { color: #4CAF50; }
+        .status-incorrect { color: #f44336; }
+        .status-review { color: #ff9800; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Multi-AI Code Review Report</h1>
+
+    <div class="summary">
+        <div class="summary-card">
+            <h3>Review Types</h3>
+            <div class="value">unknown</div>
+        </div>
+        <div class="summary-card">
+            <h3>Total Findings</h3>
+            <div class="value">1</div>
+        </div>
+        <div class="summary-card">
+            <h3>Confidence</h3>
+            <div class="value">40%</div>
+        </div>
+        <div class="summary-card">
+            <h3>Overall Status</h3>
+            <div class="value status-patch-is-incorrect">patch is incorrect</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('unified')">Unified View</button>
+        <button class="tab" onclick="showTab('security')">Security</button>
+        <button class="tab" onclick="showTab('quality')">Quality</button>
+        <button class="tab" onclick="showTab('enterprise')">Enterprise</button>
+    </div>
+
+    <div id="unified" class="tab-content active">
+        <h2>All Findings (Priority Sorted)</h2>
+<div class="finding P1"><div class="title">[P1] Avoid double-escaping task titles</div><div class="body">The new sanitizer now escapes `&`, `<`, `>` and quotes, but we call it before persisting user input (`const title = sanitize(...)`) and again when rendering via `textContent`. This double pass causes legitimate characters to be corrupted, e.g. entering `Chris's plan` is stored as `Chris&#x27;s plan`, and then re-sanitized to `Chris&amp;#x27;s plan`, which is exactly what users see in the UI and in prompts. The regression affects any title containing `&`, quotes, or angle brackets and persists across reloads, so it is a high-severity data-integrity bug that needs to be fixed before release.</div><div class="location">📁 N/A (Line 76-90)</div></div>
+    </div>
+    <div id="enterprise" class="tab-content">
+        <h2>Enterprise Review Results</h2>
+<div class="finding P1"><div class="title">[P1] Avoid double-escaping task titles</div><div class="body">The new sanitizer now escapes `&`, `<`, `>` and quotes, but we call it before persisting user input (`const title = sanitize(...)`) and again when rendering via `textContent`. This double pass causes legitimate characters to be corrupted, e.g. entering `Chris's plan` is stored as `Chris&#x27;s plan`, and then re-sanitized to `Chris&amp;#x27;s plan`, which is exactly what users see in the UI and in prompts. The regression affects any title containing `&`, quotes, or angle brackets and persists across reloads, so it is a high-severity data-integrity bug that needs to be fixed before release.</div><div class="location">📁 N/A (Line 76-90)</div></div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+    // Show selected tab
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

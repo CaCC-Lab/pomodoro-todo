@@ -1,0 +1,41 @@
+[0;34mℹ️  Checking prerequisites...[0m
+[0;32m✅ Git repository detected[0m
+[0;32m✅ Target commit: 74b55c1 (HEAD)[0m
+[0;32m✅ CodeRabbit Smart Wrapper found[0m
+[0;32m✅ CodeRabbit CLI found: 0.3.0[0m
+[0;34mℹ️  Available AI tools for fallback: claude gemini qwen droid cursor codex[0m
+[0;32m✅ Output directory exists: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit[0m
+[0;34mℹ️  CodeRabbit headless mode enabled (TTY: false, CI: false)[0m
+[0;32m✅ Prerequisites check passed[0m
+[0;34mℹ️  Starting CodeRabbit review...[0m
+[0;34mℹ️  Commit: HEAD[0m
+[0;34mℹ️  Timeout: 900s[0m
+
+⚠️  Smart Wrapper failed (exit 1), trying Layer 2...
+⚠️  Direct CLI failed (exit 1), using Layer 3...
+ℹ️  Using alternative implementation (git diff + AI analysis)
+[0;32m✅ CodeRabbit review completed[0m
+[0;34mℹ️  Raw output: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_74b55c1_alt.log[0m
+
+[0;34mℹ️  Parsing review output...[0m
+[0;32m✅ Parsing complete[0m
+[0;34mℹ️  JSON report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.json[0m
+[0;34mℹ️  Markdown report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.md[0m
+
+[0;34mℹ️  Creating symlinks to latest review...[0m
+[0;34mℹ️  Symlink created: latest_alt.json -> 20251027_224215_74b55c1_alt.json[0m
+[0;34mℹ️  Symlink created: latest_alt.md -> 20251027_224215_74b55c1_alt.md[0m
+[0;32m✅ Valid symlink: latest_alt.json[0m
+[0;32m✅ Valid symlink: latest_alt.md[0m
+
+[0;32m✅ Review workflow complete![0m
+
+📊 Review Summary:
+  - Raw Output:      /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224125_74b55c1_alt.log
+  - JSON Report:     /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.json
+  - Markdown Report: /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.md
+  - Latest Symlinks: latest_alt.json, latest_alt.md
+
+To view the report:
+  $ cat /home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/coderabbit/20251027_224215_74b55c1_alt.md
+

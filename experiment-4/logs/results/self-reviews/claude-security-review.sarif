@@ -1,0 +1,137 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Multi-AI Security Review",
+          "version": "1.0.0",
+          "informationUri": "https://github.com/your-org/multi-ai-orchestrium"
+        }
+      },
+      "results": [
+  {
+    "ruleId": "security-review",
+    "level": "warning",
+    "message": {
+      "text": "[P2] Insufficient XSS protection in sanitize() function"
+    },
+    "locations": [
+      {
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js"
+          },
+          "region": {
+            "startLine": 113,
+            "endLine": 126
+          }
+        }
+      }
+    ]
+  },
+  {
+    "ruleId": "security-review",
+    "level": "error",
+    "message": {
+      "text": "[P1] localStorage data can be accessed by any script on same origin"
+    },
+    "locations": [
+      {
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js"
+          },
+          "region": {
+            "startLine": 747,
+            "endLine": 752
+          }
+        }
+      }
+    ]
+  },
+  {
+    "ruleId": "security-review",
+    "level": "warning",
+    "message": {
+      "text": "[P2] No rate limiting on task creation enables DoS via storage exhaustion"
+    },
+    "locations": [
+      {
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js"
+          },
+          "region": {
+            "startLine": 128,
+            "endLine": 171
+          }
+        }
+      }
+    ]
+  },
+  {
+    "ruleId": "security-review",
+    "level": "note",
+    "message": {
+      "text": "[P3] Notification permission request could be abused for user annoyance"
+    },
+    "locations": [
+      {
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js"
+          },
+          "region": {
+            "startLine": 503,
+            "endLine": 507
+          }
+        }
+      }
+    ]
+  },
+  {
+    "ruleId": "security-review",
+    "level": "warning",
+    "message": {
+      "text": "[P2] Audio context creation could enable audio-based timing attacks"
+    },
+    "locations": [
+      {
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js"
+          },
+          "region": {
+            "startLine": 638,
+            "endLine": 658
+          }
+        }
+      }
+    ]
+  },
+  {
+    "ruleId": "security-review",
+    "level": "note",
+    "message": {
+      "text": "[P3] Error messages expose implementation details"
+    },
+    "locations": [
+      {
+        "physicalLocation": {
+          "artifactLocation": {
+            "uri": "/home/ryu/projects/comparison-pomodoro-todo/experiment-2-independent-plans/1-multi-ai-independent/output/app.js"
+          },
+          "region": {
+            "startLine": 805,
+            "endLine": 811
+          }
+        }
+      }
+    ]
+  }
+]
+    }
+  ]
+}

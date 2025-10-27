@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="PomoTodo はポモドーロテクニックとタスク管理を統合した軽量な生産性アプリです。"
+    />
+    <title>PomoTodo - 集中×タスク管理</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app" data-element="appRoot">
+      <header class="app__header" role="banner">
+        <div>
+          <p class="eyebrow">Focus · Plan · Review</p>
+          <h1 class="app__title">PomoTodo</h1>
+          <p class="app__subtitle">ポモドーロタイマーとTodoをひとつに</p>
+        </div>
+        <section class="today" aria-live="polite">
+          <article class="today-card" data-card="pomodoros" aria-label="今日のポモドーロ数">
+            <p class="today-card__label">Today</p>
+            <p class="today-card__value" data-text="todayPomodoros">🍅 0</p>
+          </article>
+          <article class="today-card" data-card="tasks" aria-label="今日の完了タスク">
+            <p class="today-card__label">Tasks</p>
+            <p class="today-card__value" data-text="todayTasks">0</p>
+          </article>
+          <article class="today-card" data-card="time" aria-label="今日の集中時間">
+            <p class="today-card__label">Focus</p>
+            <p class="today-card__value" data-text="todayTime">0h 0m</p>
+          </article>
+        </section>
+      </header>
+
+      <main class="app__main" role="main">
+        <section class="panel panel--tasks" aria-labelledby="tasksHeading">
+          <div class="panel__header">
+            <div>
+              <h2 id="tasksHeading" class="panel__title">タスクリスト</h2>
+              <p class="panel__description">
+                タスクを登録してポモドーロ見積もりを添えましょう（最大20 🍅）
+              </p>
+            </div>
+            <div class="filters" role="radiogroup" aria-label="タスクフィルター">
+              <button class="chip is-active" type="button" data-filter="all">全て</button>
+              <button class="chip" type="button" data-filter="active">未完了</button>
+              <button class="chip" type="button" data-filter="completed">完了済み</button>
+            </div>
+          </div>
+
+          <form class="task-form" data-task-form autocomplete="off" novalidate>
+            <label class="sr-only" for="taskTitle">タスク名</label>
+            <input
+              id="taskTitle"
+              name="title"
+              class="task-form__input"
+              type="text"
+              placeholder="タスク名（最大100文字）"
+              maxlength="100"
+              required
+            />
+            <label class="sr-only" for="taskEstimate">見積ポモドーロ数</label>
+            <input
+              id="taskEstimate"
+              name="estimate"
+              class="task-form__estimate"
+              type="number"
+              min="1"
+              max="20"
+              inputmode="numeric"
+              placeholder="🍅"
+            />
+            <button class="btn btn--primary" type="submit">追加</button>
+          </form>
+
+          <p class="alert" data-element="alert" role="alert" aria-live="assertive"></p>
+          <ul class="task-list" data-element="taskList" aria-live="polite"></ul>
+        </section>
+
+        <section class="panel panel--timer" aria-labelledby="timerHeading">
+          <div class="panel__header">
+            <div>
+              <h2 id="timerHeading" class="panel__title">ポモドーロタイマー</h2>
+              <p class="panel__description" data-text="selectedTaskLabel">タスクを選択してください</p>
+            </div>
+            <div class="timer-mode-badge" data-text="modeLabel">作業モード</div>
+          </div>
+
+          <div class="timer" data-element="timer">
+            <div class="timer__display" data-text="timeDisplay" aria-live="polite">25:00</div>
+            <div
+              class="timer__progress"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <div class="timer__progress-inner" data-element="progress"></div>
+            </div>
+          </div>
+
+          <div class="timer-controls" role="group" aria-label="タイマー操作">
+            <button class="btn btn--primary" type="button" data-action="start">開始</button>
+            <button class="btn btn--secondary" type="button" data-action="pause">一時停止</button>
+            <button class="btn btn--ghost" type="button" data-action="skip">スキップ</button>
+            <button class="btn btn--danger" type="button" data-action="reset">リセット</button>
+          </div>
+
+          <div class="timer-metrics">
+            <article>
+              <p>今日の🍅</p>
+              <p class="timer-metrics__value" data-text="timerPomodoros">0</p>
+            </article>
+            <article>
+              <p>モード</p>
+              <p class="timer-metrics__value" data-text="timerMode">作業</p>
+            </article>
+            <article>
+              <p>状態</p>
+              <p class="timer-metrics__value" data-text="timerState">停止中</p>
+            </article>
+          </div>
+
+          <section class="stats" aria-live="polite">
+            <h3 class="stats__title">今日の統計</h3>
+            <ul class="stats__list">
+              <li><span>完了タスク</span><span data-text="statsTasks">0</span></li>
+              <li><span>ポモドーロ</span><span data-text="statsPomodoros">0</span></li>
+              <li><span>集中時間</span><span data-text="statsTime">0分</span></li>
+              <li><span>連続集中</span><span data-text="statsStreak">0</span></li>
+            </ul>
+          </section>
+        </section>
+      </main>
+
+      <div class="visual-notification" data-element="visualNotification" aria-hidden="true"></div>
+    </div>
+
+    <dialog class="confirm-dialog" data-element="confirmDialog">
+      <p data-text="confirmMessage">本当に実行しますか？</p>
+      <div>
+        <button class="btn btn--ghost" type="button" data-action="cancelConfirm">キャンセル</button>
+        <button class="btn btn--danger" type="button" data-action="acceptConfirm">実行</button>
+      </div>
+    </dialog>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

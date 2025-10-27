@@ -1,0 +1,18 @@
+{
+  "name": "pomotodo-test-suite",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for PomoTodoApp with 100% branch coverage",
+  "main": "node-tests.js",
+  "scripts": {
+    "test": "node node-tests.js",
+    "test:browser": "open test-runner.html",
+    "test:verbose": "node node-tests.js"
+  },
+  "keywords": ["testing", "pomodoro", "todo", "javascript", "test-coverage"],
+  "author": "Qwen",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nyc": "^15.1.0"
+  }
+}

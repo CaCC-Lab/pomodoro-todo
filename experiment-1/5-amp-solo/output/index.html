@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ポモドーロタイマー統合型タスク管理アプリ">
+    <title>PomoTodo - ポモドーロタイマー統合型タスク管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-left">
+            <h1 class="app-title">🍅 PomoTodo</h1>
+        </div>
+        <div class="header-right">
+            <div class="today-stats">
+                <span id="today-pomodoros">🍅 0</span>
+                <span id="today-tasks">✓ 0/0</span>
+                <span id="today-time">⏱ 0h 0m</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <section class="todo-section">
+            <div class="section-header">
+                <h2>📝 タスクリスト</h2>
+            </div>
+
+            <form id="task-form" class="task-form">
+                <input 
+                    type="text" 
+                    id="task-input" 
+                    class="task-input" 
+                    placeholder="新しいタスク" 
+                    maxlength="100"
+                    required
+                >
+                <input 
+                    type="number" 
+                    id="pomodoros-input" 
+                    class="pomodoros-input" 
+                    min="1" 
+                    max="20" 
+                    value="1"
+                    title="見積もりポモドーロ数"
+                >
+                <button type="submit" class="btn-add">追加</button>
+            </form>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">全て</button>
+                <button class="filter-btn" data-filter="active">未完了</button>
+                <button class="filter-btn" data-filter="completed">完了済み</button>
+            </div>
+
+            <ul id="task-list" class="task-list"></ul>
+        </section>
+
+        <section class="timer-section">
+            <div class="section-header">
+                <h2>⏱ ポモドーロタイマー</h2>
+            </div>
+
+            <div class="timer-container">
+                <div id="timer-mode" class="timer-mode">待機中</div>
+                <div id="timer-display" class="timer-display">25:00</div>
+                <div class="progress-bar-container">
+                    <div id="progress-bar" class="progress-bar"></div>
+                </div>
+                <div id="current-task" class="current-task">タスクを選択してください</div>
+            </div>
+
+            <div class="timer-controls">
+                <button id="start-btn" class="btn-primary">開始</button>
+                <button id="pause-btn" class="btn-secondary" disabled>一時停止</button>
+                <button id="reset-btn" class="btn-secondary" disabled>リセット</button>
+                <button id="skip-btn" class="btn-secondary" disabled>スキップ</button>
+            </div>
+
+            <div class="statistics">
+                <div class="stat-card">
+                    <div class="stat-label">今日のポモドーロ</div>
+                    <div id="stat-pomodoros" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">完了タスク</div>
+                    <div id="stat-tasks" class="stat-value">0/0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">合計時間</div>
+                    <div id="stat-time" class="stat-value">0h 0m</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="notification" class="notification" role="alert" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

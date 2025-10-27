@@ -1,0 +1,2015 @@
+# Alternative Code Review Report
+
+## ℹ️  Review Mode
+
+This is an **alternative implementation** review, used when CodeRabbit CLI is not available.
+
+- ✅ Basic pattern matching
+- ✅ Security analysis
+- ✅ Code quality checks
+- ⚠️  Limited to git diff analysis
+
+## 📋 Commit Information
+
+- **Commit**: `HEAD` (`7171739`)
+- **Date**: 2025年 10月 27日 月曜日 22:41:25 JST
+- **Author**: Self-Review Experiment <experiment@multi-ai-orchestrium>
+- **Message**: 3-codex implementation for self-review experiment
+
+## 📊 Code Changes
+
+```diff
+diff --git a/app.js b/app.js
+new file mode 100644
+index 0000000..14db682
+--- /dev/null
++++ b/app.js
+@@ -0,0 +1,1043 @@
++(function () {
++  "use strict";
++
++  const STORAGE_KEYS = Object.freeze({
++    TASKS: "pomotodo_tasks",
++    TASKS_BACKUP: "pomotodo_tasks_backup",
++    TIMER: "pomotodo_timer",
++    SETTINGS: "pomotodo_settings",
++    TODAY: "pomotodo_today",
++    HISTORY: "pomotodo_history"
++  });
++
++  const ERROR_MESSAGES = Object.freeze({
++    E001: "タスク名を入力してください",
++    E002: "タスク名は100文字以内で入力してください",
++    E003: "タスクを選択してください",
++    E004: "タイマーを停止してから削除してください",
++    E005: "保存容量が不足しています",
++    E006: "データの保存ができません",
++    E007: "タイマーをリセットしますか？",
++    E008: "編集を完了してください",
++    SELECT_LOCK: "タイマーを停止してから選択してください"
++  });
++
++  const DEFAULT_SETTINGS = Object.freeze({
++    workDuration: 25,
++    shortBreakDuration: 5,
++    longBreakDuration: 15,
++    longBreakInterval: 4,
++    notificationSound: "beep",
++    focusMode: false,
++    filterState: "all"
++  });
++
++  const DEFAULT_TIMER = Object.freeze({
++    mode: "idle",
++    remainingTime: DEFAULT_SETTINGS.workDuration * 60,
++    isRunning: false,
++    isPaused: false,
++    currentTaskId: null,
++    startedAt: null,
++    targetTimestamp: null,
++    pomodoroCount: 0,
++    completedWorkSessions: 0
++  });
++
++  const DEBUG = false;
++
++  const state = {
++    tasks: [],
++    filter: DEFAULT_SETTINGS.filterState,
++    selectedTaskId: null,
++    editingTaskId: null,
++    timer: { ...DEFAULT_TIMER },
++    settings: { ...DEFAULT_SETTINGS },
++    today: createTodaySummary(getTodayKey()),
++    history: []
++  };
++
++  const elements = {};
++  let timerInterval = null;
++  let toastTimeout = null;
++  let audioCache = null;
++  let storageRecoveryPrompted = false;
++  const devLog = (...args) => {
++    if (!DEBUG) return;
++    console.log("[PomoTodo]", ...args);
++  };
++
++  document.addEventListener("DOMContentLoaded", init);
++
++  function init() {
++    cacheElements();
++    bindEvents();
++    loadState();
++    renderTasks();
++    updateFilterUI();
++    updateSelectedTaskLabel();
++    restoreTimerState();
++    updateTimerDisplay();
++    updateTimerMeta();
++    updateStats();
++    updateSummary();
++    syncSettingsForm();
++    syncFocusOverlay();
++    requestNotificationPermission();
++    setInterval(checkDayRollover, 60 * 1000);
++  }
++
++  function cacheElements() {
++    elements.taskForm = qs("[data-task-form]");
++    elements.taskTitle = document.getElementById("taskTitle");
++    elements.taskEstimate = document.getElementById("taskEstimate");
++    elements.formHint = qs("[data-text='formHint']");
++    elements.taskList = qs("[data-element='taskList']");
++    elements.filterButtons = qsa(".filter");
++    elements.selectedTaskLabel = qs("[data-text='selectedTaskLabel']");
++    elements.timerModeLabel = qs("[data-text='timerModeLabel']");
++    elements.timerDisplay = qs("[data-text='timerDisplay']");
++    elements.timerProgress = qs("[data-element='timerProgress']");
++    elements.timerTask = qs("[data-text='timerTask']");
++    elements.timerControls = qs(".timer-controls");
++    elements.timerPomodoros = qs("[data-text='timerPomodoros']");
++    elements.timerState = qs("[data-text='timerState']");
++    elements.timerMode = qs("[data-text='timerMode']");
++    elements.statsTasks = qs("[data-text='statsTasks']");
++    elements.statsPomodoros = qs("[data-text='statsPomodoros']");
++    elements.statsTime = qs("[data-text='statsTime']");
++    elements.statsUntilLong = qs("[data-text='statsUntilLong']");
++    elements.statsUpdated = qs("[data-text='statsUpdated']");
++    elements.summaryPomodoros = qs("[data-text='summaryPomodoros']");
++    elements.summaryTasks = qs("[data-text='summaryTasks']");
++    elements.summaryTime = qs("[data-text='summaryTime']");
++    elements.toast = qs("[data-element='toast']");
++    elements.timerPanel = qs("[data-element='timer']");
++    elements.settingsModal = qs("[data-element='settingsModal']");
++    elements.settingsForm = qs("[data-settings-form]");
++    elements.focusOverlay = qs("[data-element='focusOverlay']");
++    elements.openSettingsBtn = qs("[data-action='open-settings']");
++    elements.closeSettingsBtns = qsa("[data-action='close-settings']");
++    elements.resetSettingsBtn = qs("[data-action='reset-settings']");
++    elements.focusToggleBtn = qs("[data-action='focus-mode-toggle']");
++    elements.exitFocusBtn = qs("[data-action='exit-focus']");
++  }
++
++  function bindEvents() {
++    if (elements.taskForm) {
++      elements.taskForm.addEventListener("submit", handleTaskSubmit);
++      elements.taskTitle.addEventListener("input", () => elements.formHint.textContent = "");
++    }
++    elements.filterButtons.forEach((btn) => btn.addEventListener("click", () => setFilter(btn.dataset.filter)));
++    if (elements.taskList) {
++      elements.taskList.addEventListener("click", handleTaskListClick);
++      elements.taskList.addEventListener("change", handleTaskListChange);
++      elements.taskList.addEventListener("keydown", handleTaskListKeydown);
++      elements.taskList.addEventListener("dblclick", handleTaskListDblClick);
++    }
++    if (elements.timerControls) {
++      elements.timerControls.addEventListener("click", handleTimerControlClick);
++    }
++    document.addEventListener("visibilitychange", handleVisibilityChange);
++    window.addEventListener("beforeunload", persistAll);
++    if (elements.openSettingsBtn) {
++      elements.openSettingsBtn.addEventListener("click", openSettings);
++    }
++    elements.closeSettingsBtns.forEach((btn) => btn.addEventListener("click", closeSettings));
++    if (elements.settingsForm) {
++      elements.settingsForm.addEventListener("submit", handleSettingsSubmit);
++    }
++    if (elements.resetSettingsBtn) {
++      elements.resetSettingsBtn.addEventListener("click", resetSettingsToDefault);
++    }
++    if (elements.focusToggleBtn) {
++      elements.focusToggleBtn.addEventListener("click", toggleFocusModeFromButton);
++    }
++    if (elements.exitFocusBtn) {
++      elements.exitFocusBtn.addEventListener("click", exitFocusMode);
++    }
++  }
++
++  // ---------- Data loading & persistence ----------
++  function loadState() {
++    state.settings = { ...DEFAULT_SETTINGS, ...safeParse(STORAGE_KEYS.SETTINGS, {}) };
++    state.filter = state.settings.filterState || "all";
++    const storedTasks = safeParse(STORAGE_KEYS.TASKS, []);
++    if (Array.isArray(storedTasks)) {
++      state.tasks = storedTasks.map(normalizeTask);
++    }
++    const storedTimer = safeParse(STORAGE_KEYS.TIMER, {});
++    state.timer = { ...DEFAULT_TIMER, ...sanitizeTimer(storedTimer) };
++    state.selectedTaskId = state.timer.currentTaskId;
++    const storedToday = safeParse(STORAGE_KEYS.TODAY, null);
++    const todayKey = getTodayKey();
++    if (storedToday && storedToday.date === todayKey) {
++      state.today = { ...createTodaySummary(todayKey), ...storedToday };
++    } else {
++      state.today = createTodaySummary(todayKey);
++    }
++    const history = safeParse(STORAGE_KEYS.HISTORY, []);
++    if (Array.isArray(history)) {
++      state.history = history.slice(-30);
++    }
++    recomputeTodayTasks();
++  }
++
++  function persistAll() {
++    persistTasks();
++    persistTimer();
++    persistSettings();
++    persistToday();
++    persistHistory();
++  }
++
++  function persistTasks() {
++    try {
++      const previous = localStorage.getItem(STORAGE_KEYS.TASKS);
++      if (previous) {
++        localStorage.setItem(STORAGE_KEYS.TASKS_BACKUP, previous);
++      }
++      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(state.tasks));
++      devLog("persistTasks", state.tasks.length);
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistTimer() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.TIMER, JSON.stringify(state.timer));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistSettings() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistToday() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.TODAY, JSON.stringify(state.today));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistHistory() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(state.history.slice(-30)));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function handleStorageError(error) {
++    if (error && error.name === "QuotaExceededError") {
++      showToast(ERROR_MESSAGES.E005, "error");
++    } else {
++      showToast(ERROR_MESSAGES.E006, "error");
++    }
++  }
++
++  function safeParse(key, fallback) {
++    try {
++      const raw = localStorage.getItem(key);
++      if (!raw) return fallback;
++      return JSON.parse(raw);
++    } catch (error) {
++      handleStorageError(error);
++      if (!storageRecoveryPrompted && typeof window !== "undefined" && window.confirm("保存データが破損しています。初期化しますか？")) {
++        localStorage.removeItem(key);
++        storageRecoveryPrompted = true;
++      }
++      return fallback;
++    }
++  }
++
++  // ---------- Task management ----------
++  function handleTaskSubmit(event) {
++    event.preventDefault();
++    if (state.editingTaskId) {
++      showHint(ERROR_MESSAGES.E008);
++      return;
++    }
++    const title = sanitize(elements.taskTitle.value.trim());
++    const estimateValue = elements.taskEstimate.value.trim();
++    if (!title) {
++      showHint(ERROR_MESSAGES.E001);
++      return;
++    }
++    if (title.length > 100) {
++      showHint(ERROR_MESSAGES.E002);
++      return;
++    }
++    let estimatedPomodoros = null;
++    if (estimateValue) {
++      const parsed = Number.parseInt(estimateValue, 10);
++      if (!Number.isFinite(parsed) || parsed < 1 || parsed > 20) {
++        showHint("見積もりは1〜20で入力してください");
++        return;
++      }
++      estimatedPomodoros = parsed;
++    }
++    const task = {
++      id: `task_${Date.now()}`,
++      title,
++      completed: false,
++      estimatedPomodoros,
++      actualPomodoros: 0,
++      createdAt: new Date().toISOString(),
++      completedAt: null
++    };
++    state.tasks = [task, ...state.tasks];
++    elements.taskTitle.value = "";
++    elements.taskEstimate.value = "";
++    showHint("");
++    persistTasks();
++    renderTasks(true);
++  }
++
++  function handleTaskListClick(event) {
++    const action = event.target.closest("[data-action]");
++    if (action) {
++      const taskEl = action.closest("[data-task-id]");
++      if (!taskEl) return;
++      const taskId = taskEl.dataset.taskId;
++      if (action.dataset.action === "delete") {
++        requestDeleteTask(taskId);
++        return;
++      }
++      if (action.dataset.action === "edit") {
++        requestEditTask(taskId);
++        return;
++      }
++    }
++    const selectable = event.target.closest("[data-role='select-task']");
++    if (selectable) {
++      const taskId = selectable.closest("[data-task-id]").dataset.taskId;
++      selectTask(taskId);
++    }
++  }
++
++  function handleTaskListChange(event) {
++    if (!event.target.matches("[data-role='toggle']")) return;
++    const taskId = event.target.closest("[data-task-id]").dataset.taskId;
++    toggleTaskCompletion(taskId, event.target.checked);
++  }
++
++  function handleTaskListKeydown(event) {
++    if (event.key === "Enter" && event.target.matches("[data-role='select-task']")) {
++      event.preventDefault();
++      const taskId = event.target.closest("[data-task-id]").dataset.taskId;
++      selectTask(taskId);
++    }
++  }
++
++  function handleTaskListDblClick(event) {
++    const item = event.target.closest("[data-task-id]");
++    if (!item) return;
++    requestEditTask(item.dataset.taskId);
++  }
++
++  function selectTask(taskId) {
++    if (state.timer.isRunning && state.timer.mode === "work" && state.timer.currentTaskId !== taskId) {
++      showToast(ERROR_MESSAGES.SELECT_LOCK, "warning");
++      return;
++    }
++    state.selectedTaskId = taskId;
++    state.timer.currentTaskId = taskId;
++    persistTimer();
++    updateSelectedTaskLabel();
++    renderTasks();
++  }
++
++  function toggleTaskCompletion(taskId, completed) {
++    const task = state.tasks.find((t) => t.id === taskId);
++    if (!task) return;
++    task.completed = completed;
++    task.completedAt = completed ? new Date().toISOString() : null;
++    persistTasks();
++    renderTasks();
++    recomputeTodayTasks();
++    updateStats();
++    updateSummary();
++  }
++
++  function requestDeleteTask(taskId) {
++    if (state.timer.isRunning && state.timer.currentTaskId === taskId) {
++      showToast(ERROR_MESSAGES.E004, "error");
++      return;
++    }
++    const animateRemoval = elements.taskList?.querySelector(`[data-task-id='${taskId}']`);
++    const finalize = () => {
++      state.tasks = state.tasks.filter((task) => task.id !== taskId);
++      if (state.selectedTaskId === taskId) {
++        state.selectedTaskId = null;
++        state.timer.currentTaskId = null;
++      }
++      persistTasks();
++      renderTasks();
++      updateSelectedTaskLabel();
++    };
++    if (animateRemoval) {
++      animateRemoval.classList.add("task-item--removing");
++      animateRemoval.addEventListener("animationend", finalize, { once: true });
++    } else {
++      finalize();
++    }
++  }
++
++  function requestEditTask(taskId) {
++    if (state.timer.isRunning) {
++      showToast(ERROR_MESSAGES.E008, "warning");
++      return;
++    }
++    if (state.editingTaskId && state.editingTaskId !== taskId) {
++      showToast(ERROR_MESSAGES.E008, "warning");
++      return;
++    }
++    state.editingTaskId = taskId;
++    renderTasks();
++  }
++
++  function submitTaskEdit(taskId, newTitle) {
++    const sanitized = sanitize(newTitle.trim());
++    if (!sanitized) {
++      showToast(ERROR_MESSAGES.E001, "error");
++      return;
++    }
++    const task = state.tasks.find((t) => t.id === taskId);
++    if (!task) return;
++    task.title = sanitized.slice(0, 100);
++    state.editingTaskId = null;
++    persistTasks();
++    renderTasks();
++  }
++
++  function renderTasks(animate = false) {
++    if (!elements.taskList) return;
++    const fragment = document.createDocumentFragment();
++    const filtered = getFilteredTasks();
++    filtered.forEach((task) => {
++      fragment.appendChild(createTaskElement(task, animate));
++    });
++    elements.taskList.innerHTML = "";
++    elements.taskList.appendChild(fragment);
++    if (animate) {
++      animateListChange();
++    }
++  }
++
++  function createTaskElement(task, animate) {
++    const li = ce("li");
++    li.className = "task-item";
++    if (state.selectedTaskId === task.id) li.classList.add("selected");
++    if (task.completed) li.classList.add("completed");
++    if (animate) li.classList.add("task-item--new");
++    li.dataset.taskId = task.id;
++
++    const checkbox = ce("input", { type: "checkbox" });
++    checkbox.checked = task.completed;
++    checkbox.setAttribute("aria-label", `${task.title}の完了状態`);
++    checkbox.dataset.role = "toggle";
++
++    const content = ce("div", { className: "task-content" });
++
++    if (state.editingTaskId === task.id) {
++      const input = ce("input", { type: "text", value: task.title, maxLength: 100 });
++      input.dataset.role = "edit-input";
++      input.addEventListener("keydown", (event) => {
++        if (event.key === "Enter") {
++          submitTaskEdit(task.id, event.target.value);
++        }
++        if (event.key === "Escape") {
++          state.editingTaskId = null;
++          renderTasks();
++        }
++      });
++      input.addEventListener("blur", (event) => {
++        if (state.editingTaskId === task.id) {
++          submitTaskEdit(task.id, event.target.value);
++        }
++      });
++      content.appendChild(input);
++    } else {
++      const title = ce("button", { type: "button", className: "task-title" });
++      if (task.completed) title.classList.add("completed");
++      title.dataset.role = "select-task";
++      title.textContent = task.title;
++      content.appendChild(title);
++    }
++
++    const meta = ce("div", { className: "task-meta" });
++    const pomodoroLabel = ce("span");
++    const estimate = task.estimatedPomodoros || "-";
++    pomodoroLabel.textContent = `🍅 ${task.actualPomodoros}/${estimate}`;
++    if (task.estimatedPomodoros) {
++      if (task.actualPomodoros < task.estimatedPomodoros) {
++        pomodoroLabel.style.color = "var(--text-secondary)";
++      } else if (task.actualPomodoros === task.estimatedPomodoros) {
++        pomodoroLabel.style.color = "var(--success)";
++      } else {
++        pomodoroLabel.style.color = "var(--warning)";
++      }
++    }
++    meta.appendChild(pomodoroLabel);
++
++    if (task.estimatedPomodoros) {
++      const progress = ce("div", { className: "task-progress" });
++      const progressBar = ce("div", { className: "task-progress__bar" });
++      const percentage = Math.min(100, (task.actualPomodoros / task.estimatedPomodoros) * 100);
++      progressBar.style.width = `${percentage}%`;
++      progress.appendChild(progressBar);
++      meta.appendChild(progress);
++    }
++
++    content.appendChild(meta);
++
++    const actions = ce("div", { className: "task-actions" });
++    const editBtn = ce("button", { type: "button", className: "btn btn--ghost" });
++    editBtn.textContent = "編集";
++    editBtn.dataset.action = "edit";
++    const deleteBtn = ce("button", { type: "button", className: "btn btn--ghost" });
++    deleteBtn.textContent = "✕";
++    deleteBtn.dataset.action = "delete";
++    actions.appendChild(editBtn);
++    actions.appendChild(deleteBtn);
++
++    li.appendChild(checkbox);
++    li.appendChild(content);
++    li.appendChild(actions);
++    return li;
++  }
++
++  function getFilteredTasks() {
++    const tasks = [...state.tasks];
++    tasks.sort((a, b) => Number(a.completed) - Number(b.completed));
++    if (state.filter === "active") {
++      return tasks.filter((task) => !task.completed);
++    }
++    if (state.filter === "completed") {
++      return tasks.filter((task) => task.completed);
++    }
++    return tasks;
++  }
++
++  function updateSelectedTaskLabel() {
++    if (!elements.selectedTaskLabel) return;
++    const task = state.tasks.find((t) => t.id === state.selectedTaskId);
++    elements.selectedTaskLabel.textContent = task ? `選択中: ${task.title}` : "タスクを選択してください";
++    elements.timerTask.textContent = task ? task.title : "-";
++  }
++
++  function setFilter(filter) {
++    state.filter = filter;
++    state.settings.filterState = filter;
++    persistSettings();
++    renderTasks();
++    animateListChange();
++    updateFilterUI();
++  }
++
++  function updateFilterUI() {
++    elements.filterButtons.forEach((btn) => {
++      btn.classList.toggle("is-active", btn.dataset.filter === state.filter);
++    });
++  }
++
++  function animateListChange() {
++    if (!elements.taskList) return;
++    elements.taskList.classList.add("is-filtering");
++    setTimeout(() => elements.taskList?.classList.remove("is-filtering"), 180);
++  }
++
++  function showHint(message) {
++    if (!elements.formHint) return;
++    elements.formHint.textContent = message || "";
++  }
++
++  // ---------- Timer ----------
++  function handleTimerControlClick(event) {
++    const action = event.target.closest("[data-action^='timer-']");
++    if (!action) return;
++    const type = action.dataset.action;
++    if (type === "timer-start") return startTimer();
++    if (type === "timer-pause") return pauseTimer();
++    if (type === "timer-resume") return resumeTimer();
++    if (type === "timer-reset") return resetTimer();
++    if (type === "timer-skip") return skipTimer();
++  }
++
++  function startTimer() {
++    if (state.timer.isRunning) return;
++    if (state.timer.mode === "idle") {
++      state.timer.mode = "work";
++      state.timer.remainingTime = getModeDuration("work");
++    }
++    if (state.timer.mode === "work" && !state.selectedTaskId) {
++      showToast(ERROR_MESSAGES.E003, "error");
++      return;
++    }
++    state.timer.currentTaskId = state.selectedTaskId;
++    state.timer.isRunning = true;
++    state.timer.isPaused = false;
++    state.timer.startedAt = new Date().toISOString();
++    state.timer.targetTimestamp = Date.now() + state.timer.remainingTime * 1000;
++    devLog("startTimer", state.timer.mode, state.timer.remainingTime);
++    startTicking();
++    updateTimerMeta();
++    persistTimer();
++  }
++
++  function startTicking() {
++    clearInterval(timerInterval);
++    timerInterval = setInterval(() => {
++      updateRemainingTime();
++    }, 1000);
++  }
++
++  function updateRemainingTime() {
++    if (!state.timer.isRunning || !state.timer.targetTimestamp) return;
++    const remaining = Math.max(0, Math.round((state.timer.targetTimestamp - Date.now()) / 1000));
++    state.timer.remainingTime = remaining;
++    updateTimerDisplay();
++    if (remaining <= 0) {
++      completeCycle();
++    }
++  }
++
++  function pauseTimer() {
++    if (!state.timer.isRunning) return;
++    state.timer.isRunning = false;
++    state.timer.isPaused = true;
++    state.timer.remainingTime = Math.max(0, Math.round((state.timer.targetTimestamp - Date.now()) / 1000));
++    state.timer.targetTimestamp = null;
++    clearInterval(timerInterval);
++    updateTimerMeta();
++    persistTimer();
++  }
++
++  function resumeTimer() {
++    if (!state.timer.isPaused || state.timer.isRunning) return;
++    state.timer.isRunning = true;
++    state.timer.isPaused = false;
++    state.timer.targetTimestamp = Date.now() + state.timer.remainingTime * 1000;
++    startTicking();
++    updateTimerMeta();
++    persistTimer();
++  }
++
++  function resetTimer() {
++    if (!window.confirm(ERROR_MESSAGES.E007)) return;
++    clearInterval(timerInterval);
++    state.timer = { ...DEFAULT_TIMER, remainingTime: getModeDuration("work") };
++    state.timer.mode = "idle";
++    state.selectedTaskId = null;
++    updateSelectedTaskLabel();
++    updateTimerDisplay();
++    updateTimerMeta();
++    persistTimer();
++  }
++
++  function skipTimer() {
++    if (state.timer.mode === "work" && state.timer.isRunning) {
++      pauseTimer();
++    }
++    transitionToNextMode(true);
++  }
++
++  function completeCycle() {
++    clearInterval(timerInterval);
++    state.timer.isRunning = false;
++    state.timer.isPaused = false;
++    state.timer.remainingTime = 0;
++    updateTimerDisplay();
++    if (state.timer.mode === "work") {
++      handleWorkSessionComplete();
++    } else {
++      showToast("休憩が終了しました", "info");
++    }
++    transitionToNextMode(true);
++  }
++
++  function handleWorkSessionComplete() {
++    const task = state.tasks.find((t) => t.id === state.timer.currentTaskId);
++    if (task) {
++      task.actualPomodoros += 1;
++      persistTasks();
++    }
++    state.timer.pomodoroCount += 1;
++    state.timer.completedWorkSessions += 1;
++    devLog("workSessionComplete", state.timer.completedWorkSessions);
++    recordTodayPomodoro();
++    renderTasks();
++    updateStats();
++    updateSummary();
++    fireNotifications(task?.title || "ポモドーロ");
++  }
++
++  function transitionToNextMode(autoStart = false) {
++    if (state.timer.mode === "work") {
++      state.timer.mode = shouldTakeLongBreak() ? "longBreak" : "shortBreak";
++    } else {
++      state.timer.mode = "work";
++    }
++    state.timer.remainingTime = getModeDuration(state.timer.mode);
++    state.timer.currentTaskId = state.timer.mode === "work" ? state.selectedTaskId : null;
++    devLog("transitionToMode", state.timer.mode);
++    updateTimerDisplay();
++    updateTimerMeta();
++    persistTimer();
++    if (autoStart) {
++      startTimer();
++    }
++  }
++
++  function shouldTakeLongBreak() {
++    if (!state.settings.longBreakInterval) return false;
++    return state.timer.completedWorkSessions % state.settings.longBreakInterval === 0;
++  }
++
++  function getModeDuration(mode) {
++    switch (mode) {
++      case "shortBreak":
++        return clamp(state.settings.shortBreakDuration, 1, 30) * 60;
++      case "longBreak":
++        return clamp(state.settings.longBreakDuration, 5, 60) * 60;
++      case "work":
++        return clamp(state.settings.workDuration, 1, 60) * 60;
++      default:
++        return clamp(state.settings.workDuration, 1, 60) * 60;
++    }
++  }
++
++  function updateTimerDisplay() {
++    elements.timerDisplay.textContent = formatTime(state.timer.remainingTime);
++    const duration = getModeDuration(state.timer.mode === "idle" ? "work" : state.timer.mode);
++    const progress = 100 - Math.min(100, (state.timer.remainingTime / duration) * 100);
++    elements.timerProgress.style.width = `${progress}%`;
++    elements.timerModeLabel.textContent = modeLabel(state.timer.mode);
++  }
++
++  function updateTimerMeta() {
++    elements.timerState.textContent = state.timer.isRunning
++      ? "実行中"
++      : state.timer.isPaused
++        ? "一時停止"
++        : "停止中";
++    elements.timerMode.textContent = modeLabel(state.timer.mode);
++    elements.timerPomodoros.textContent = String(state.timer.pomodoroCount);
++    elements.timerPanel?.classList.toggle("running", state.timer.isRunning);
++  }
++
++  function modeLabel(mode) {
++    if (mode === "work") return "作業中";
++    if (mode === "shortBreak") return "短い休憩";
++    if (mode === "longBreak") return "長い休憩";
++    return "待機中";
++  }
++
++  function restoreTimerState() {
++    if (!state.timer.isRunning || !state.timer.targetTimestamp) {
++      if (!Number.isFinite(state.timer.remainingTime) || state.timer.remainingTime <= 0) {
++        state.timer.remainingTime = getModeDuration(state.timer.mode === "idle" ? "work" : state.timer.mode);
++      }
++      return;
++    }
++    const remaining = Math.max(0, Math.round((state.timer.targetTimestamp - Date.now()) / 1000));
++    state.timer.remainingTime = remaining;
++    if (remaining <= 0) {
++      completeCycle();
++    } else {
++      startTicking();
++    }
++  }
++
++  function handleVisibilityChange() {
++    if (document.visibilityState === "visible") {
++      updateRemainingTime();
++    }
++  }
++
++  function recordTodayPomodoro() {
++    state.today.pomodoros += 1;
++    state.today.totalMinutes += state.settings.workDuration;
++    recomputeTodayTasks();
++    persistToday();
++    persistHistoryEntry();
++  }
++
++  function recomputeTodayTasks() {
++    const todayKey = getTodayKey();
++    const completedToday = state.tasks.filter((task) => task.completedAt && task.completedAt.startsWith(todayKey)).length;
++    state.today.completedTasks = completedToday;
++    persistToday();
++  }
++
++  function persistHistoryEntry() {
++    const todayKey = getTodayKey();
++    const entry = { date: todayKey, ...state.today };
++    const index = state.history.findIndex((item) => item.date === todayKey);
++    if (index >= 0) {
++      state.history[index] = entry;
++    } else {
++      state.history.push(entry);
++    }
++    state.history = state.history.slice(-30);
++    persistHistory();
++  }
++
++  function checkDayRollover() {
++    const todayKey = getTodayKey();
++    if (state.today.date === todayKey) return;
++    state.history.push({ ...state.today });
++    state.history = state.history.slice(-30);
++    state.today = createTodaySummary(todayKey);
++    state.timer.pomodoroCount = 0;
++    state.timer.completedWorkSessions = 0;
++    persistToday();
++    persistHistory();
++    updateStats();
++    updateSummary();
++  }
++
++  function updateStats() {
++    elements.statsTasks.textContent = String(state.today.completedTasks || 0);
++    elements.statsPomodoros.textContent = String(state.today.pomodoros || 0);
++    elements.statsTime.textContent = `${state.today.totalMinutes}分`;
++    const cycleMod = state.settings.longBreakInterval
++      ? state.timer.completedWorkSessions % state.settings.longBreakInterval
++      : 0;
++    const remaining = cycleMod === 0 ? 0 : state.settings.longBreakInterval - cycleMod;
++    elements.statsUntilLong.textContent = state.timer.mode.includes("Break")
++      ? "0"
++      : String(remaining);
++    elements.statsUpdated.textContent = `更新: ${new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`;
++  }
++
++  function updateSummary() {
++    elements.summaryPomodoros.textContent = `🍅 ${state.today.pomodoros}`;
++    elements.summaryTasks.textContent = String(state.today.completedTasks || 0);
++    const hours = Math.floor((state.today.totalMinutes || 0) / 60);
++    const minutes = (state.today.totalMinutes || 0) % 60;
++    elements.summaryTime.textContent = `${hours}h ${minutes}m`;
++  }
++
++  // ---------- Settings & focus mode ----------
++  function openSettings() {
++    populateSettingsForm();
++    elements.settingsModal?.classList.add("is-open");
++    elements.settingsModal?.setAttribute("aria-hidden", "false");
++  }
++
++  function closeSettings() {
++    elements.settingsModal?.classList.remove("is-open");
++    elements.settingsModal?.setAttribute("aria-hidden", "true");
++  }
++
++  function populateSettingsForm() {
++    if (!elements.settingsForm) return;
++    elements.settingsForm.workDuration.value = state.settings.workDuration;
++    elements.settingsForm.shortBreakDuration.value = state.settings.shortBreakDuration;
++    elements.settingsForm.longBreakDuration.value = state.settings.longBreakDuration;
++    elements.settingsForm.longBreakInterval.value = state.settings.longBreakInterval;
++    elements.settingsForm.notificationSound.value = state.settings.notificationSound;
++    elements.settingsForm.focusMode.checked = state.settings.focusMode;
++  }
++
++  function syncSettingsForm() {
++    populateSettingsForm();
++  }
++
++  function handleSettingsSubmit(event) {
++    event.preventDefault();
++    const formData = new FormData(event.target);
++    const nextSettings = {
++      workDuration: clamp(Number(formData.get("workDuration")), 1, 60),
++      shortBreakDuration: clamp(Number(formData.get("shortBreakDuration")), 1, 30),
++      longBreakDuration: clamp(Number(formData.get("longBreakDuration")), 5, 60),
++      longBreakInterval: clamp(Number(formData.get("longBreakInterval")), 1, 10),
++      notificationSound: formData.get("notificationSound") || "beep",
++      focusMode: formData.get("focusMode") === "on",
++      filterState: state.filter
++    };
++    state.settings = nextSettings;
++    state.timer.remainingTime = getModeDuration(state.timer.mode === "idle" ? "work" : state.timer.mode);
++    persistSettings();
++    updateTimerDisplay();
++    syncFocusOverlay();
++    closeSettings();
++    showToast("設定を保存しました", "success");
++  }
++
++  function resetSettingsToDefault() {
++    state.settings = { ...DEFAULT_SETTINGS };
++    state.filter = state.settings.filterState;
++    persistSettings();
++    syncSettingsForm();
++    updateFilterUI();
++    updateTimerDisplay();
++    showToast("設定を初期化しました", "info");
++  }
++
++  function toggleFocusModeFromButton() {
++    state.settings.focusMode = !state.settings.focusMode;
++    persistSettings();
++    syncFocusOverlay();
++  }
++
++  function exitFocusMode() {
++    state.settings.focusMode = false;
++    persistSettings();
++    syncFocusOverlay();
++  }
++
++  function syncFocusOverlay() {
++    if (!elements.focusOverlay) return;
++    if (state.settings.focusMode) {
++      elements.focusOverlay.classList.add("is-active");
++    } else {
++      elements.focusOverlay.classList.remove("is-active");
++    }
++  }
++
++  // ---------- Notifications ----------
++  function requestNotificationPermission() {
++    if (!("Notification" in window)) return;
++    if (Notification.permission === "default") {
++      Notification.requestPermission();
++    }
++  }
++
++  function fireNotifications(taskTitle) {
++    showToast(`${taskTitle} が完了しました`, "success");
++    if (state.settings.focusMode) {
++      return;
++    }
++    playSound();
++    showVisualNotification();
++    if ("Notification" in window && Notification.permission === "granted") {
++      new Notification("ポモドーロ完了", { body: `${taskTitle} のポモドーロが完了しました` });
++    }
++  }
++
++  function playSound() {
++    const sound = state.settings.notificationSound;
++    if (sound === "silent") return;
++    if (!audioCache) {
++      audioCache = new AudioContext();
++    }
++    const ctx = audioCache;
++    const duration = 0.25;
++    const oscillator = ctx.createOscillator();
++    const gain = ctx.createGain();
++    oscillator.type = sound === "chime" ? "sine" : "triangle";
++    oscillator.frequency.value = sound === "bell" ? 600 : sound === "chime" ? 420 : 820;
++    oscillator.connect(gain);
++    gain.connect(ctx.destination);
++    gain.gain.setValueAtTime(0.25, ctx.currentTime);
++    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
++    oscillator.start();
++    oscillator.stop(ctx.currentTime + duration);
++  }
++
++  function showVisualNotification() {
++    if (!elements.timerPanel) return;
++    elements.timerPanel.classList.add("pulse");
++    setTimeout(() => elements.timerPanel?.classList.remove("pulse"), 1000);
++  }
++
++  // ---------- Utilities ----------
++  function sanitize(value) {
++    const str = typeof value === "string" ? value : "";
++    return str.replace(/[<>"'`]/g, "");
++  }
++
++  function normalizeTask(task) {
++    return {
++      id: task.id || `task_${Date.now()}`,
++      title: typeof task.title === "string" ? task.title : "無題",
++      completed: Boolean(task.completed),
++      estimatedPomodoros: sanitizeNumber(task.estimatedPomodoros, null),
++      actualPomodoros: sanitizeNumber(task.actualPomodoros, 0),
++      createdAt: task.createdAt || new Date().toISOString(),
++      completedAt: task.completedAt || null
++    };
++  }
++
++  function sanitizeTimer(timer) {
++    const mode = ["work", "shortBreak", "longBreak", "idle"].includes(timer.mode) ? timer.mode : "idle";
++    return {
++      mode,
++      remainingTime: sanitizeNumber(timer.remainingTime, getModeDuration(mode === "idle" ? "work" : mode)),
++      isRunning: Boolean(timer.isRunning),
++      isPaused: Boolean(timer.isPaused),
++      currentTaskId: timer.currentTaskId || null,
++      startedAt: timer.startedAt || null,
++      targetTimestamp: timer.targetTimestamp || null,
++      pomodoroCount: sanitizeNumber(timer.pomodoroCount, 0),
++      completedWorkSessions: sanitizeNumber(timer.completedWorkSessions, 0)
++    };
++  }
++
++  function sanitizeNumber(value, fallback) {
++    const num = Number.parseInt(value, 10);
++    return Number.isFinite(num) ? num : fallback;
++  }
++
++  function clamp(value, min, max) {
++    const num = Number(value);
++    if (!Number.isFinite(num)) return min;
++    return Math.min(Math.max(num, min), max);
++  }
++
++  function createTodaySummary(date) {
++    return {
++      date,
++      pomodoros: 0,
++      completedTasks: 0,
++      totalMinutes: 0
++    };
++  }
++
++  function getTodayKey() {
++    return new Date().toISOString().split("T")[0];
++  }
++
++  function showToast(message, variant = "info") {
++    if (!elements.toast || !message) return;
++    elements.toast.textContent = message;
++    elements.toast.dataset.variant = variant;
++    elements.toast.classList.add("is-visible");
++    clearTimeout(toastTimeout);
++    toastTimeout = setTimeout(() => {
++      elements.toast?.classList.remove("is-visible");
++    }, 2800);
++  }
++
++  function qs(selector, scope = document) {
++    return scope.querySelector(selector);
++  }
++
++  function qsa(selector, scope = document) {
++    return Array.from(scope.querySelectorAll(selector));
++  }
++
++  function ce(tag, props = {}) {
++    const el = document.createElement(tag);
++    Object.assign(el, props);
++    return el;
++  }
++
++  function formatTime(totalSeconds) {
++    const safe = Math.max(0, Number.isFinite(totalSeconds) ? totalSeconds : 0);
++    const minutes = String(Math.floor(safe / 60)).padStart(2, "0");
++    const seconds = String(Math.floor(safe % 60)).padStart(2, "0");
++    return `${minutes}:${seconds}`;
++  }
++})();
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000..d1f9b71
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,184 @@
++<!DOCTYPE html>
++<html lang="ja">
++  <head>
++    <meta charset="utf-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1" />
++    <title>PomoTodo | Codex Independent</title>
++    <link rel="stylesheet" href="./style.css" />
++  </head>
++  <body>
++    <div class="app" data-app-root>
++      <header class="app__header" role="banner">
++        <div>
++          <p class="app__eyebrow">ポモドーロ × タスク管理</p>
++          <h1 class="app__title">PomoTodo</h1>
++          <p class="app__subtitle">集中と見える化を両立する生産性コックピット</p>
++        </div>
++        <div class="header__actions">
++          <button type="button" class="btn btn--ghost" data-action="focus-mode-toggle">集中モード</button>
++          <button type="button" class="btn btn--secondary" data-action="open-settings">設定</button>
++        </div>
++        <div class="summary" aria-live="polite">
++          <div class="summary__item" aria-label="今日のポモドーロ数">
++            <span class="summary__label">Today</span>
++            <span class="summary__value" data-text="summaryPomodoros">🍅 0</span>
++          </div>
++          <div class="summary__item" aria-label="今日完了したタスク数">
++            <span class="summary__label">Tasks</span>
++            <span class="summary__value" data-text="summaryTasks">0</span>
++          </div>
++          <div class="summary__item" aria-label="合計作業時間">
++            <span class="summary__label">Focus</span>
++            <span class="summary__value" data-text="summaryTime">0h 0m</span>
++          </div>
++        </div>
++      </header>
++
++      <main class="app__main" role="main">
++        <section class="panel panel--tasks" aria-labelledby="tasksHeading">
++          <div class="panel__header">
++            <h2 id="tasksHeading" class="panel__title">タスク</h2>
++            <div class="panel__filters" role="radiogroup" aria-label="タスクフィルタ">
++              <button type="button" class="filter is-active" data-filter="all">全て</button>
++              <button type="button" class="filter" data-filter="active">未完了</button>
++              <button type="button" class="filter" data-filter="completed">完了済み</button>
++            </div>
++          </div>
++
++          <form class="task-form" data-task-form autocomplete="off" novalidate>
++            <label class="sr-only" for="taskTitle">タスク名</label>
++            <input id="taskTitle" name="title" class="task-form__input" type="text" placeholder="タスク名 (最大100文字)" maxlength="100" required />
++            <label class="sr-only" for="taskEstimate">見積もりポモドーロ</label>
++            <input id="taskEstimate" name="estimate" class="task-form__estimate" type="number" inputmode="numeric" min="1" max="20" placeholder="🍅" />
++            <button type="submit" class="btn btn--primary">追加</button>
++          </form>
++          <p class="form-hint" data-text="formHint" aria-live="assertive"></p>
++
++          <ul class="task-list" data-element="taskList" aria-live="polite"></ul>
++        </section>
++
++        <section class="panel panel--timer" aria-labelledby="timerHeading">
++          <div class="panel__header">
++            <h2 id="timerHeading" class="panel__title">ポモドーロタイマー</h2>
++            <p class="panel__subtitle" data-text="selectedTaskLabel">タスクを選択してください</p>
++          </div>
++
++          <div class="timer" data-element="timer">
++            <span class="timer__mode" data-text="timerModeLabel">作業中</span>
++            <span class="timer__time" data-text="timerDisplay" aria-live="polite">25:00</span>
++            <div class="timer__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
++              <div class="timer__progress-bar" data-element="timerProgress"></div>
++            </div>
++            <p class="timer__current-task" data-text="timerTask">-</p>
++          </div>
++
++          <div class="timer-controls" role="group" aria-label="タイマー操作">
++            <button type="button" class="btn btn--primary" data-action="timer-start">開始</button>
++            <button type="button" class="btn btn--secondary" data-action="timer-pause">一時停止</button>
++            <button type="button" class="btn btn--secondary" data-action="timer-resume">再開</button>
++            <button type="button" class="btn btn--danger" data-action="timer-reset">リセット</button>
++            <button type="button" class="btn btn--ghost" data-action="timer-skip">スキップ</button>
++          </div>
++
++          <div class="timer-stats">
++            <div>
++              <p class="timer-stats__label">通算</p>
++              <p class="timer-stats__value" data-text="timerPomodoros">0</p>
++            </div>
++            <div>
++              <p class="timer-stats__label">状態</p>
++              <p class="timer-stats__value" data-text="timerState">停止中</p>
++            </div>
++            <div>
++              <p class="timer-stats__label">モード</p>
++              <p class="timer-stats__value" data-text="timerMode">作業</p>
++            </div>
++          </div>
++
++          <section class="stats" aria-labelledby="statsHeading">
++            <div class="stats__header">
++              <h3 id="statsHeading">今日の統計</h3>
++              <span class="stats__sub" data-text="statsUpdated">更新: --:--</span>
++            </div>
++            <div class="stats__grid">
++              <article class="stats-card">
++                <p class="stats-card__label">完了タスク</p>
++                <p class="stats-card__value" data-text="statsTasks">0</p>
++              </article>
++              <article class="stats-card">
++                <p class="stats-card__label">ポモドーロ</p>
++                <p class="stats-card__value" data-text="statsPomodoros">0</p>
++              </article>
++              <article class="stats-card">
++                <p class="stats-card__label">合計時間</p>
++                <p class="stats-card__value" data-text="statsTime">0分</p>
++              </article>
++              <article class="stats-card">
++                <p class="stats-card__label">長休憩まで</p>
++                <p class="stats-card__value" data-text="statsUntilLong">4</p>
++              </article>
++            </div>
++          </section>
++        </section>
++      </main>
++    </div>
++
++    <div class="toast" data-element="toast" role="status" aria-live="assertive"></div>
++
++    <div class="modal" data-element="settingsModal" aria-hidden="true" role="dialog" aria-labelledby="settingsHeading">
++      <div class="modal__backdrop" data-action="close-settings"></div>
++      <div class="modal__body">
++        <header class="modal__header">
++          <h2 id="settingsHeading">設定</h2>
++          <button type="button" class="btn btn--ghost" data-action="close-settings" aria-label="閉じる">✕</button>
++        </header>
++        <form class="settings-form" data-settings-form>
++          <div class="settings-group">
++            <label for="workDuration">作業時間 (分)</label>
++            <input id="workDuration" name="workDuration" type="number" min="1" max="60" required />
++          </div>
++          <div class="settings-group">
++            <label for="shortBreakDuration">短い休憩 (分)</label>
++            <input id="shortBreakDuration" name="shortBreakDuration" type="number" min="1" max="30" required />
++          </div>
++          <div class="settings-group">
++            <label for="longBreakDuration">長い休憩 (分)</label>
++            <input id="longBreakDuration" name="longBreakDuration" type="number" min="5" max="60" required />
++          </div>
++          <div class="settings-group">
++            <label for="longBreakInterval">長休憩の頻度 (ポモドーロ数)</label>
++            <input id="longBreakInterval" name="longBreakInterval" type="number" min="1" max="10" required />
++          </div>
++          <div class="settings-group">
++            <label for="notificationSound">通知音</label>
++            <select id="notificationSound" name="notificationSound">
++              <option value="beep">Beep</option>
++              <option value="bell">Bell</option>
++              <option value="chime">Chime</option>
++              <option value="silent">Silent</option>
++            </select>
++          </div>
++          <div class="settings-group settings-group--row">
++            <label class="switch">
++              <input type="checkbox" name="focusMode" />
++              <span>集中モードを有効化</span>
++            </label>
++          </div>
++          <div class="modal__footer">
++            <button type="button" class="btn btn--ghost" data-action="reset-settings">デフォルトに戻す</button>
++            <button type="submit" class="btn btn--primary">保存</button>
++          </div>
++        </form>
++      </div>
++    </div>
++
++    <div class="focus-overlay" data-element="focusOverlay" aria-hidden="true">
++      <div class="focus-overlay__content">
++        <p>集中モード中</p>
++        <button type="button" class="btn btn--secondary" data-action="exit-focus">戻る</button>
++      </div>
++    </div>
++
++    <script src="./app.js" defer></script>
++  </body>
++</html>
+diff --git a/style.css b/style.css
+new file mode 100644
+index 0000000..5a05dfc
+--- /dev/null
++++ b/style.css
+@@ -0,0 +1,614 @@
++:root {
++  --primary-red: #e94f37;
++  --primary-green: #27ae60;
++  --primary-blue: #2e78ff;
++  --bg-main: #f6f7fb;
++  --bg-panel: #ffffff;
++  --bg-hover: #eef3ff;
++  --text-primary: #1e2330;
++  --text-secondary: #6b7280;
++  --border-color: #e2e6ef;
++  --danger: #ff4d4f;
++  --success: #2ecc71;
++  --warning: #f39c12;
++  --shadow-sm: 0 6px 18px rgba(23, 27, 44, 0.08);
++  --font-family: "Inter", "Noto Sans JP", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
++  --font-size-sm: 0.875rem;
++  --font-size-base: 1rem;
++  --font-size-lg: 1.25rem;
++  --font-size-xl: 1.75rem;
++  --font-size-2xl: clamp(2.8rem, 4vw, 3.5rem);
++  --font-size-timer: clamp(3rem, 8vw, 4.5rem);
++  color-scheme: light;
++}
++
++@media (prefers-color-scheme: dark) {
++  :root {
++    --bg-main: #111827;
++    --bg-panel: #1f2937;
++    --bg-hover: rgba(46, 120, 255, 0.12);
++    --text-primary: #f3f4f6;
++    --text-secondary: #9ca3af;
++    --border-color: rgba(255, 255, 255, 0.08);
++    color-scheme: dark;
++  }
++}
++
++* {
++  box-sizing: border-box;
++}
++
++body {
++  margin: 0;
++  min-height: 100vh;
++  font-family: var(--font-family);
++  background: var(--bg-main);
++  color: var(--text-primary);
++  line-height: 1.6;
++}
++
++img,
++svg {
++  max-width: 100%;
++}
++
++button,
++input,
++select,
++textarea {
++  font: inherit;
++}
++
++.app {
++  max-width: 1200px;
++  margin: 0 auto;
++  padding: 32px 24px 64px;
++  display: flex;
++  flex-direction: column;
++  gap: 24px;
++}
++
++.app__header {
++  display: grid;
++  gap: 12px;
++  background: var(--bg-panel);
++  padding: 24px;
++  border-radius: 20px;
++  box-shadow: var(--shadow-sm);
++  border: 1px solid var(--border-color);
++}
++
++.app__eyebrow {
++  text-transform: uppercase;
++  letter-spacing: 0.08em;
++  font-size: var(--font-size-sm);
++  color: var(--text-secondary);
++  margin: 0;
++}
++
++.app__title {
++  font-size: clamp(2rem, 5vw, 2.8rem);
++  font-weight: 700;
++  margin: 0;
++}
++
++.app__subtitle {
++  margin: 0;
++  color: var(--text-secondary);
++}
++
++.header__actions {
++  display: flex;
++  gap: 12px;
++  flex-wrap: wrap;
++}
++
++.summary {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
++  gap: 12px;
++}
++
++.summary__item {
++  border: 1px solid var(--border-color);
++  border-radius: 16px;
++  padding: 16px;
++  background: var(--bg-main);
++}
++
++.summary__label {
++  font-size: var(--font-size-sm);
++  color: var(--text-secondary);
++}
++
++.summary__value {
++  display: block;
++  font-size: var(--font-size-xl);
++  font-weight: 600;
++}
++
++.app__main {
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
++  gap: 24px;
++}
++
++.panel {
++  background: var(--bg-panel);
++  border-radius: 20px;
++  padding: 24px;
++  border: 1px solid var(--border-color);
++  box-shadow: var(--shadow-sm);
++  display: flex;
++  flex-direction: column;
++  gap: 20px;
++}
++
++.panel__header {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  justify-content: space-between;
++  gap: 12px;
++}
++
++.panel__title {
++  margin: 0;
++  font-size: var(--font-size-xl);
++}
++
++.panel__filters {
++  display: inline-flex;
++  background: var(--bg-main);
++  border-radius: 999px;
++  padding: 6px;
++  border: 1px solid var(--border-color);
++}
++
++.filter {
++  border: none;
++  background: transparent;
++  padding: 6px 16px;
++  border-radius: 999px;
++  color: var(--text-secondary);
++  cursor: pointer;
++  transition: background 0.2s, color 0.2s;
++}
++
++.filter.is-active {
++  background: var(--primary-blue);
++  color: #fff;
++}
++
++.task-form {
++  display: grid;
++  grid-template-columns: 1fr 80px auto;
++  gap: 8px;
++}
++
++.task-form__input,
++.task-form__estimate,
++.settings-form input,
++.settings-form select,
++.task-list input[type="text"] {
++  border: 1px solid var(--border-color);
++  border-radius: 12px;
++  padding: 12px 14px;
++  background: transparent;
++  color: var(--text-primary);
++  transition: border 0.2s, box-shadow 0.2s;
++}
++
++.task-form__input:focus,
++.task-form__estimate:focus,
++.settings-form input:focus,
++.settings-form select:focus,
++.task-list input[type="text"]:focus {
++  outline: none;
++  border-color: var(--primary-blue);
++  box-shadow: 0 0 0 3px rgba(46, 120, 255, 0.2);
++}
++
++.form-hint {
++  min-height: 1.5em;
++  margin: 0;
++  color: var(--danger);
++  font-size: var(--font-size-sm);
++}
++
++.task-list {
++  margin: 0;
++  padding: 0;
++  list-style: none;
++  display: flex;
++  flex-direction: column;
++  gap: 12px;
++  transition: opacity 0.2s;
++}
++.task-list.is-filtering {
++  opacity: 0.4;
++}
++
++.task-item {
++  display: grid;
++  grid-template-columns: auto 1fr auto;
++  gap: 12px;
++  align-items: center;
++  padding: 14px;
++  border-radius: 16px;
++  border: 1px solid var(--border-color);
++  background: var(--bg-main);
++  transition: transform 0.2s, background 0.2s, border 0.2s;
++}
++.task-item--new {
++  animation: fadeIn 0.3s ease-out;
++}
++.task-item--removing {
++  animation: fadeOut 0.25s forwards;
++}
++
++.task-item:hover {
++  transform: translateY(-2px);
++  border-color: var(--primary-blue);
++}
++
++.task-item.selected {
++  border-color: var(--primary-blue);
++  background: rgba(46, 120, 255, 0.08);
++}
++
++.task-item.completed {
++  opacity: 0.65;
++}
++
++.task-title {
++  margin: 0;
++  font-weight: 600;
++  cursor: pointer;
++}
++
++.task-title.completed {
++  text-decoration: line-through;
++  color: var(--text-secondary);
++}
++
++.task-meta {
++  display: flex;
++  gap: 12px;
++  font-size: var(--font-size-sm);
++  color: var(--text-secondary);
++  align-items: center;
++}
++
++.task-actions {
++  display: flex;
++  gap: 8px;
++}
++
++.btn {
++  border: none;
++  border-radius: 12px;
++  padding: 10px 18px;
++  font-weight: 600;
++  cursor: pointer;
++  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
++}
++
++.btn:active {
++  transform: scale(0.98);
++}
++
++.btn--primary {
++  background: linear-gradient(135deg, var(--primary-blue), #5f9df7);
++  color: #fff;
++  box-shadow: 0 10px 18px rgba(46, 120, 255, 0.25);
++}
++
++.btn--secondary {
++  background: rgba(46, 120, 255, 0.1);
++  color: var(--primary-blue);
++}
++
++.btn--danger {
++  background: var(--danger);
++  color: #fff;
++}
++
++.btn--ghost {
++  background: transparent;
++  color: var(--text-primary);
++  border: 1px solid var(--border-color);
++}
++
++.timer {
++  text-align: center;
++  padding: 32px 24px;
++  border-radius: 24px;
++  border: 1px solid var(--border-color);
++  background: radial-gradient(circle at top, rgba(46, 120, 255, 0.08), transparent 60%), var(--bg-main);
++}
++.timer.pulse {
++  animation: pulse 0.8s ease-out;
++}
++
++.timer__mode {
++  font-size: var(--font-size-lg);
++  color: var(--primary-blue);
++  font-weight: 600;
++}
++
++.timer__time {
++  font-size: var(--font-size-timer);
++  font-weight: 700;
++  letter-spacing: 4px;
++  margin: 8px 0 12px;
++}
++
++.timer__progress {
++  width: 100%;
++  height: 10px;
++  border-radius: 999px;
++  background: rgba(46, 120, 255, 0.1);
++  overflow: hidden;
++}
++
++.timer__progress-bar {
++  height: 100%;
++  width: 0;
++  border-radius: inherit;
++  background: linear-gradient(90deg, var(--primary-red), var(--primary-blue));
++  transition: width 0.2s ease-out;
++}
++@keyframes fadeIn {
++  from {
++    opacity: 0;
++    transform: translateY(8px);
++  }
++  to {
++    opacity: 1;
++    transform: translateY(0);
++  }
++}
++@keyframes fadeOut {
++  from {
++    opacity: 1;
++    transform: translateY(0);
++  }
++  to {
++    opacity: 0;
++    transform: translateY(-6px);
++  }
++}
++@keyframes pulse {
++  0% {
++    box-shadow: 0 0 0 0 rgba(46, 120, 255, 0.4);
++  }
++  100% {
++    box-shadow: 0 0 0 30px rgba(46, 120, 255, 0);
++  }
++}
++
++.timer__current-task {
++  margin: 12px 0 0;
++  color: var(--text-secondary);
++}
++
++.timer-controls {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
++  gap: 12px;
++}
++
++.timer-stats {
++  display: grid;
++  grid-template-columns: repeat(3, 1fr);
++  gap: 12px;
++  text-align: center;
++}
++
++.timer-stats__label {
++  margin: 0;
++  color: var(--text-secondary);
++}
++
++.timer-stats__value {
++  margin: 0;
++  font-size: var(--font-size-lg);
++  font-weight: 600;
++}
++
++.stats__grid {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
++  gap: 12px;
++}
++
++.stats-card {
++  padding: 16px;
++  border-radius: 16px;
++  border: 1px solid var(--border-color);
++  background: var(--bg-main);
++}
++
++.stats-card__label {
++  margin: 0;
++  color: var(--text-secondary);
++}
++
++.stats-card__value {
++  margin: 4px 0 0;
++  font-size: var(--font-size-lg);
++  font-weight: 600;
++}
++
++.toast {
++  position: fixed;
++  bottom: 32px;
++  left: 50%;
++  transform: translateX(-50%) translateY(120%);
++  background: #111827;
++  color: #fff;
++  padding: 12px 20px;
++  border-radius: 999px;
++  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
++  transition: transform 0.3s ease;
++  z-index: 999;
++}
++
++.toast.is-visible {
++  transform: translateX(-50%) translateY(0);
++}
++.toast[data-variant='error'] {
++  background: var(--danger);
++}
++.toast[data-variant='success'] {
++  background: var(--primary-green);
++}
++.toast[data-variant='warning'] {
++  background: #fbbf24;
++  color: #1e1e1e;
++}
++
++.modal {
++  position: fixed;
++  inset: 0;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  pointer-events: none;
++  opacity: 0;
++  transition: opacity 0.2s;
++  z-index: 200;
++}
++
++.modal.is-open {
++  opacity: 1;
++  pointer-events: auto;
++}
++
++.modal__backdrop {
++  position: absolute;
++  inset: 0;
++  background: rgba(15, 23, 42, 0.65);
++}
++
++.modal__body {
++  position: relative;
++  z-index: 1;
++  width: min(480px, calc(100% - 32px));
++  background: var(--bg-panel);
++  border-radius: 20px;
++  padding: 24px;
++  border: 1px solid var(--border-color);
++  box-shadow: var(--shadow-sm);
++}
++
++.modal__header {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  margin-bottom: 16px;
++}
++
++.settings-form {
++  display: flex;
++  flex-direction: column;
++  gap: 16px;
++}
++
++.settings-group {
++  display: flex;
++  flex-direction: column;
++  gap: 6px;
++}
++
++.settings-group--row {
++  flex-direction: row;
++  align-items: center;
++  justify-content: space-between;
++}
++
++.switch {
++  display: flex;
++  gap: 8px;
++  align-items: center;
++}
++
++.modal__footer {
++  display: flex;
++  justify-content: flex-end;
++  gap: 12px;
++}
++
++.focus-overlay {
++  position: fixed;
++  inset: 0;
++  background: rgba(15, 23, 42, 0.9);
++  color: #fff;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  flex-direction: column;
++  gap: 16px;
++  opacity: 0;
++  pointer-events: none;
++  transition: opacity 0.2s;
++  z-index: 500;
++}
++
++.focus-overlay.is-active {
++  opacity: 1;
++  pointer-events: auto;
++}
++
++.task-progress {
++  width: 100%;
++  height: 6px;
++  border-radius: 999px;
++  background: rgba(255, 255, 255, 0.4);
++  overflow: hidden;
++}
++
++.task-progress__bar {
++  height: 100%;
++  width: 0;
++  background: linear-gradient(90deg, var(--primary-green), var(--warning));
++  transition: width 0.2s;
++}
++
++@media (max-width: 1024px) {
++  .app__main {
++    grid-template-columns: 1fr;
++  }
++}
++
++@media (max-width: 720px) {
++  .app {
++    padding: 16px;
++  }
++
++  .panel,
++  .app__header {
++    padding: 18px;
++  }
++
++  .task-form {
++    grid-template-columns: 1fr;
++  }
++
++  .timer-controls {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++  }
++}
++
++.sr-only {
++  position: absolute;
++  width: 1px;
++  height: 1px;
++  padding: 0;
++  margin: -1px;
++  overflow: hidden;
++  clip: rect(0, 0, 0, 0);
++  white-space: nowrap;
++  border: 0;
++}
+```
+
+## 🔍 Automated Analysis
+
+### Changes Summary
+
+- **Lines Added**: 1844
+- **Lines Removed**: 3
+- **Net Change**: 1841 lines
+
+### Potential Issues Detected
+
+#### 🟡 **Medium - TODO/FIXME Comments**
+
+**Description**: Found TODO/FIXME comments that should be addressed before merging.
+
+**Comments Found**:
+```
++  const DEBUG = false;
++    if (!DEBUG) return;
+```
+
+**Recommendation**: Create tracking issues for each TODO/FIXME or resolve them before merging.
+
+#### 🟡 **Medium - Debug Statements**
+
+**Description**: Found debug statements that should be removed before production deployment.
+
+**Debug Statements Found**:
+```
++    console.log("[PomoTodo]", ...args);
+```
+
+**Recommendation**: Use proper logging framework (e.g., Python logging, Winston for Node.js).
+
+### 📝 Code Quality Suggestions
+
+- **Security**: Review all changes for security implications, especially authentication and data handling
+- **Error Handling**: Ensure proper error handling and recovery mechanisms are implemented
+- **Testing**: Add unit tests for new functionality and edge cases
+- **Documentation**: Update relevant documentation, docstrings, and comments
+- **Style Guide**: Follow project-specific code style and formatting guidelines
+- **Performance**: Consider performance implications of changes, especially in loops and database queries
+- **Logging**: Use structured logging with appropriate log levels (DEBUG, INFO, WARNING, ERROR)
+
+## 🤖 AI-Enhanced Analysis (gemini)
+
+Loaded cached credentials.
+Based on the provided code snippet from `app.js`, here is an analysis covering security, performance, best practices, and suggestions for improvement.
+
+This review assumes that helper functions like `qs` and `qsa` are aliases for `document.querySelector` and `document.querySelectorAll`, respectively, and that `safeParse` correctly handles JSON parsing errors.
+
+### 1. Security Vulnerabilities
+
+*   **Potential Cross-Site Scripting (XSS)**: The application handles user-provided data (e.g., `taskTitle`). If this data is rendered to the DOM using `innerHTML` without proper sanitization, it creates a significant XSS vulnerability. An attacker could input malicious HTML or script content as a task name, which would then be executed by the browser.
+
+    *   **Recommendation**: Always use `element.textContent` instead of `element.innerHTML` when rendering user-provided strings. If you must render HTML content, use a well-vetted sanitization library like [DOMPurify](https://github.com/cure53/DOMPurify) to strip out malicious code before insertion.
+
+    ```javascript
+    // Bad: Potential XSS
+    // taskElement.innerHTML = task.title;
+
+    // Good: No XSS
+    taskElement.textContent = task.title;
+    ```
+
+### 2. Performance Implications
+
+*   **Data Persistence on `beforeunload`**: The `persistAll` function is tied to the `beforeunload` event. This can be unreliable, as complex or slow operations (like stringifying and saving multiple large objects to `localStorage`) are not guaranteed to complete. It can also negatively impact the user experience by delaying the closing of the tab.
+
+    *   **Recommendation**: Instead of a single large save on exit, implement a more granular and responsive persistence strategy. Use a "debounced" function that saves the application state automatically a few hundred milliseconds after a change occurs. This distributes the performance cost and makes data loss less likely.
+
+*   **DOM Rendering**: The code caches DOM elements in `cacheElements()`, which is a good performance practice. However, the `renderTasks()` function (not shown) can be a performance bottleneck if it re-renders the entire task list every time a single task changes. This causes unnecessary layout reflows and repaints.
+
+    *   **Recommendation**: Optimize the rendering logic to only update the specific DOM elements that have changed. For instance, when a task is completed, update only that task's element in the list rather than rebuilding the entire list.
+
+*   **Timer Interval and Page Visibility**: The use of `setInterval` for timers can lead to unnecessary CPU usage and battery drain when the page is not visible.
+
+    *   **Recommendation**: Use the Page Visibility API (as hinted at by `handleVisibilityChange`) to pause the timer interval when the tab is in the background. When the tab becomes visible again, calculate the elapsed time and adjust the timer accordingly. This prevents timer drift and saves resources.
+
+### 3. Best Practice Violations
+
+*   **Single-File Architecture**: The entire application logic appears to reside in a single, large JavaScript file. This makes the code difficult to navigate, maintain, test, and debug. It also violates the Single Responsibility Principle.
+
+    *   **Recommendation**: Refactor the code into smaller, focused ES6 modules (e.g., `storage.js`, `timer.js`, `ui.js`, `task.js`). This improves organization, promotes code reuse, and makes the codebase much more manageable.
+
+*   **Global Mutable State**: The application relies on a single, globally accessible `state` object that can be mutated from anywhere in the code. This can lead to unpredictable state changes and bugs that are difficult to trace.
+
+    *   **Recommendation**: Isolate state management. Create dedicated functions for updating the state (similar to reducers in Redux). These functions should ideally be "pure," meaning they take the current state and a payload as input and return a *new* state object, rather than modifying the existing one. This makes state transitions predictable and easier to log or debug.
+
+*   **Mixing of Concerns**: Functions and event handlers appear to mix DOM manipulation, state updates, and business logic. For example, an event handler might directly read from an input, update the `state` object, and then manipulate the DOM.
+
+    *   **Recommendation**: Separate these concerns. Event handlers should primarily be responsible for capturing user actions and dispatching calls to other functions that handle the business logic and state updates. A separate rendering layer should then react to state changes to update the UI.
+
+### 4. Suggestions for Improvement
+
+*   **Adopt a Component-Based Approach**: Even without a framework, you can structure your UI rendering logic into "components." Create functions that are responsible for creating or updating a specific part of the UI (e.g., a `createTaskElement(task)` function). This makes the UI code more modular and reusable.
+
+*   **Constants for Magic Strings**: The code defines constants for storage keys and error messages, which is excellent. This practice should be extended to other "magic strings," such as the timer modes (`'idle'`, `'work'`, `'shortBreak'`).
+
+    *   **Recommendation**: Create a `TIMER_MODES` constant object. This prevents typos and makes the code more readable and easier to refactor.
+
+    ```javascript
+    const TIMER_MODES = Object.freeze({
+      IDLE: "idle",
+      WORK: "work",
+      SHORT_BREAK: "shortBreak",
+      LONG_BREAK: "longBreak"
+    });
+
+    // Usage:
+    state.timer.mode = TIMER_MODES.WORK;
+    ```
+
+*   **Robust Error Handling**: While `ERROR_MESSAGES` are defined, ensure they are used within a structured error handling system. All interactions with external APIs like `localStorage` should be wrapped in `try...catch` blocks to prevent the application from crashing due to storage errors (e.g., quota exceeded).
+
+## ✅ Action Items
+
+Based on this automated review, consider the following actions:
+
+1. 🔴 **Address Critical Issues**: Fix all security vulnerabilities before merging
+2. 🟠 **Review High Priority**: Investigate high-priority issues and determine appropriate fixes
+3. 🟡 **Consider Medium Priority**: Evaluate medium-priority suggestions for code quality improvement
+4. 🧪 **Add Tests**: Ensure adequate test coverage for all new code paths
+5. 📚 **Update Docs**: Update documentation to reflect code changes
+6. 👥 **Peer Review**: Request manual peer review from team members
+
+---
+
+**Review Generated**: 2025年 10月 27日 月曜日 22:42:19 JST
+**Review Type**: Alternative Implementation (Pattern Matching + AI)
+**Commit**: `7171739` (`HEAD`)
+
+> ⚠️  **Note**: This is an automated alternative review. For production-grade analysis, use CodeRabbit CLI or comprehensive manual review.
+

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PomoTodo | Codex Independent</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app" data-app-root>
+      <header class="app__header" role="banner">
+        <div>
+          <p class="app__eyebrow">ポモドーロ × タスク管理</p>
+          <h1 class="app__title">PomoTodo</h1>
+          <p class="app__subtitle">集中と見える化を両立する生産性コックピット</p>
+        </div>
+        <div class="header__actions">
+          <button type="button" class="btn btn--ghost" data-action="focus-mode-toggle">集中モード</button>
+          <button type="button" class="btn btn--secondary" data-action="open-settings">設定</button>
+        </div>
+        <div class="summary" aria-live="polite">
+          <div class="summary__item" aria-label="今日のポモドーロ数">
+            <span class="summary__label">Today</span>
+            <span class="summary__value" data-text="summaryPomodoros">🍅 0</span>
+          </div>
+          <div class="summary__item" aria-label="今日完了したタスク数">
+            <span class="summary__label">Tasks</span>
+            <span class="summary__value" data-text="summaryTasks">0</span>
+          </div>
+          <div class="summary__item" aria-label="合計作業時間">
+            <span class="summary__label">Focus</span>
+            <span class="summary__value" data-text="summaryTime">0h 0m</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="app__main" role="main">
+        <section class="panel panel--tasks" aria-labelledby="tasksHeading">
+          <div class="panel__header">
+            <h2 id="tasksHeading" class="panel__title">タスク</h2>
+            <div class="panel__filters" role="radiogroup" aria-label="タスクフィルタ">
+              <button type="button" class="filter is-active" data-filter="all">全て</button>
+              <button type="button" class="filter" data-filter="active">未完了</button>
+              <button type="button" class="filter" data-filter="completed">完了済み</button>
+            </div>
+          </div>
+
+          <form class="task-form" data-task-form autocomplete="off" novalidate>
+            <label class="sr-only" for="taskTitle">タスク名</label>
+            <input id="taskTitle" name="title" class="task-form__input" type="text" placeholder="タスク名 (最大100文字)" maxlength="100" required />
+            <label class="sr-only" for="taskEstimate">見積もりポモドーロ</label>
+            <input id="taskEstimate" name="estimate" class="task-form__estimate" type="number" inputmode="numeric" min="1" max="20" placeholder="🍅" />
+            <button type="submit" class="btn btn--primary">追加</button>
+          </form>
+          <p class="form-hint" data-text="formHint" aria-live="assertive"></p>
+
+          <ul class="task-list" data-element="taskList" aria-live="polite"></ul>
+        </section>
+
+        <section class="panel panel--timer" aria-labelledby="timerHeading">
+          <div class="panel__header">
+            <h2 id="timerHeading" class="panel__title">ポモドーロタイマー</h2>
+            <p class="panel__subtitle" data-text="selectedTaskLabel">タスクを選択してください</p>
+          </div>
+
+          <div class="timer" data-element="timer">
+            <span class="timer__mode" data-text="timerModeLabel">作業中</span>
+            <span class="timer__time" data-text="timerDisplay" aria-live="polite">25:00</span>
+            <div class="timer__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="timer__progress-bar" data-element="timerProgress"></div>
+            </div>
+            <p class="timer__current-task" data-text="timerTask">-</p>
+          </div>
+
+          <div class="timer-controls" role="group" aria-label="タイマー操作">
+            <button type="button" class="btn btn--primary" data-action="timer-start">開始</button>
+            <button type="button" class="btn btn--secondary" data-action="timer-pause">一時停止</button>
+            <button type="button" class="btn btn--secondary" data-action="timer-resume">再開</button>
+            <button type="button" class="btn btn--danger" data-action="timer-reset">リセット</button>
+            <button type="button" class="btn btn--ghost" data-action="timer-skip">スキップ</button>
+          </div>
+
+          <div class="timer-stats">
+            <div>
+              <p class="timer-stats__label">通算</p>
+              <p class="timer-stats__value" data-text="timerPomodoros">0</p>
+            </div>
+            <div>
+              <p class="timer-stats__label">状態</p>
+              <p class="timer-stats__value" data-text="timerState">停止中</p>
+            </div>
+            <div>
+              <p class="timer-stats__label">モード</p>
+              <p class="timer-stats__value" data-text="timerMode">作業</p>
+            </div>
+          </div>
+
+          <section class="stats" aria-labelledby="statsHeading">
+            <div class="stats__header">
+              <h3 id="statsHeading">今日の統計</h3>
+              <span class="stats__sub" data-text="statsUpdated">更新: --:--</span>
+            </div>
+            <div class="stats__grid">
+              <article class="stats-card">
+                <p class="stats-card__label">完了タスク</p>
+                <p class="stats-card__value" data-text="statsTasks">0</p>
+              </article>
+              <article class="stats-card">
+                <p class="stats-card__label">ポモドーロ</p>
+                <p class="stats-card__value" data-text="statsPomodoros">0</p>
+              </article>
+              <article class="stats-card">
+                <p class="stats-card__label">合計時間</p>
+                <p class="stats-card__value" data-text="statsTime">0分</p>
+              </article>
+              <article class="stats-card">
+                <p class="stats-card__label">長休憩まで</p>
+                <p class="stats-card__value" data-text="statsUntilLong">4</p>
+              </article>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" data-element="toast" role="status" aria-live="assertive"></div>
+
+    <div class="modal" data-element="settingsModal" aria-hidden="true" role="dialog" aria-labelledby="settingsHeading">
+      <div class="modal__backdrop" data-action="close-settings"></div>
+      <div class="modal__body">
+        <header class="modal__header">
+          <h2 id="settingsHeading">設定</h2>
+          <button type="button" class="btn btn--ghost" data-action="close-settings" aria-label="閉じる">✕</button>
+        </header>
+        <form class="settings-form" data-settings-form>
+          <div class="settings-group">
+            <label for="workDuration">作業時間 (分)</label>
+            <input id="workDuration" name="workDuration" type="number" min="1" max="60" required />
+          </div>
+          <div class="settings-group">
+            <label for="shortBreakDuration">短い休憩 (分)</label>
+            <input id="shortBreakDuration" name="shortBreakDuration" type="number" min="1" max="30" required />
+          </div>
+          <div class="settings-group">
+            <label for="longBreakDuration">長い休憩 (分)</label>
+            <input id="longBreakDuration" name="longBreakDuration" type="number" min="5" max="60" required />
+          </div>
+          <div class="settings-group">
+            <label for="longBreakInterval">長休憩の頻度 (ポモドーロ数)</label>
+            <input id="longBreakInterval" name="longBreakInterval" type="number" min="1" max="10" required />
+          </div>
+          <div class="settings-group">
+            <label for="notificationSound">通知音</label>
+            <select id="notificationSound" name="notificationSound">
+              <option value="beep">Beep</option>
+              <option value="bell">Bell</option>
+              <option value="chime">Chime</option>
+              <option value="silent">Silent</option>
+            </select>
+          </div>
+          <div class="settings-group settings-group--row">
+            <label class="switch">
+              <input type="checkbox" name="focusMode" />
+              <span>集中モードを有効化</span>
+            </label>
+          </div>
+          <div class="modal__footer">
+            <button type="button" class="btn btn--ghost" data-action="reset-settings">デフォルトに戻す</button>
+            <button type="submit" class="btn btn--primary">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="focus-overlay" data-element="focusOverlay" aria-hidden="true">
+      <div class="focus-overlay__content">
+        <p>集中モード中</p>
+        <button type="button" class="btn btn--secondary" data-action="exit-focus">戻る</button>
+      </div>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+</html>

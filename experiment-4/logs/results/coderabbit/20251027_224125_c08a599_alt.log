@@ -1,0 +1,2174 @@
+# Alternative Code Review Report
+
+## ℹ️  Review Mode
+
+This is an **alternative implementation** review, used when CodeRabbit CLI is not available.
+
+- ✅ Basic pattern matching
+- ✅ Security analysis
+- ✅ Code quality checks
+- ⚠️  Limited to git diff analysis
+
+## 📋 Commit Information
+
+- **Commit**: `HEAD` (`c08a599`)
+- **Date**: 2025年 10月 27日 月曜日 22:41:25 JST
+- **Author**: Self-Review Experiment <experiment@multi-ai-orchestrium>
+- **Message**: 1-multi implementation for self-review experiment
+
+## 📊 Code Changes
+
+```diff
+diff --git a/app.js b/app.js
+new file mode 100644
+index 0000000..c6bf9bd
+--- /dev/null
++++ b/app.js
+@@ -0,0 +1,946 @@
++(function () {
++  "use strict";
++
++  const STORAGE_KEYS = Object.freeze({
++    TASKS: "pomotodo_tasks",
++    TIMER: "pomotodo_timer",
++    SETTINGS: "pomotodo_settings",
++    TODAY: "pomotodo_today",
++    HISTORY: "pomotodo_history"
++  });
++
++  const ERROR_MESSAGES = Object.freeze({
++    E001: "タスク名を入力してください",
++    E002: "タスク名は100文字以内で入力してください",
++    E003: "タスクを選択してください",
++    E004: "タイマーを停止してから削除してください",
++    E005: "保存容量が不足しています",
++    E006: "データの保存ができません",
++    E007: "タイマーをリセットしますか？",
++    E008: "編集を完了してください"
++  });
++
++  const DEFAULT_SETTINGS = Object.freeze({
++    workDuration: 25,
++    shortBreakDuration: 5,
++    notificationSound: "beep",
++    focusMode: false,
++    filterState: "all"
++  });
++
++  const DEFAULT_TIMER = Object.freeze({
++    mode: "work",
++    remainingTime: DEFAULT_SETTINGS.workDuration * 60,
++    isRunning: false,
++    isPaused: false,
++    currentTaskId: null,
++    startedAt: null,
++    targetTimestamp: null,
++    pomodoroCount: 0
++  });
++
++  const state = {
++    tasks: [],
++    filter: DEFAULT_SETTINGS.filterState,
++    selectedTaskId: null,
++    editingTaskId: null,
++    timer: { ...DEFAULT_TIMER },
++    settings: { ...DEFAULT_SETTINGS },
++    today: createTodaySummary(getTodayKey()),
++    history: []
++  };
++
++  const elements = {};
++  let timerInterval = null;
++  let audioContext;
++
++  function init() {
++    cacheElements();
++    loadState();
++    recomputeTodayCompletedTasks();
++    persistToday();
++    bindEvents();
++    renderTasks();
++    updateFilterUI();
++    updateSelectedTaskLabel();
++    restoreTimerState();
++    updateTimerDisplay();
++    updateTimerDetails();
++    updateStatsDisplay();
++    updateTodaySummaryDisplay();
++    checkDayRollover();
++    setInterval(checkDayRollover, 60 * 1000);
++  }
++
++  function cacheElements() {
++    elements.taskForm = document.querySelector("[data-task-form]");
++    elements.taskTitle = document.getElementById("taskTitle");
++    elements.taskEstimate = document.getElementById("taskEstimate");
++    elements.alert = document.querySelector("[data-element='alert']");
++    elements.taskList = document.querySelector("[data-element='taskList']");
++    elements.filterButtons = document.querySelectorAll(".filter-button");
++    elements.timer = document.querySelector("[data-element='timer']");
++    elements.modeLabel = document.querySelector("[data-text='modeLabel']");
++    elements.timeDisplay = document.querySelector("[data-text='timeDisplay']");
++    elements.progress = document.querySelector("[data-element='progress']");
++    elements.timerControls = document.querySelector(".timer-controls");
++    elements.selectedTaskLabel = document.querySelector("[data-text='selectedTaskLabel']");
++    elements.timerPomodoros = document.querySelector("[data-text='timerPomodoros']");
++    elements.timerMode = document.querySelector("[data-text='timerMode']");
++    elements.timerState = document.querySelector("[data-text='timerState']");
++    elements.statsPomodoros = document.querySelector("[data-text='statsPomodoros']");
++    elements.statsTasks = document.querySelector("[data-text='statsTasks']");
++    elements.statsTime = document.querySelector("[data-text='statsTime']");
++    elements.statsStreak = document.querySelector("[data-text='statsStreak']");
++    elements.visualNotification = document.querySelector("[data-element='visualNotification']");
++    elements.todayPomodoros = document.querySelector("[data-text='todayPomodoros']");
++    elements.todayTasks = document.querySelector("[data-text='todayTasks']");
++    elements.todayTime = document.querySelector("[data-text='todayTime']");
++  }
++
++  function bindEvents() {
++    elements.taskForm.addEventListener("submit", handleTaskSubmit);
++    elements.filterButtons.forEach((btn) =>
++      btn.addEventListener("click", () => setFilter(btn.dataset.filter))
++    );
++    elements.taskList.addEventListener("change", handleTaskListChange);
++    elements.taskList.addEventListener("click", handleTaskListClick);
++    elements.taskList.addEventListener("keydown", handleTaskListKeydown);
++    elements.timerControls.addEventListener("click", handleTimerControlClick);
++    document.addEventListener("visibilitychange", handleVisibilityChange);
++    window.addEventListener("beforeunload", persistAll);
++  }
++
++  function sanitize(str) {
++    // Enhanced sanitizer to prevent XSS attacks
++    if (typeof str !== 'string') return '';
++    // First, remove HTML tags
++    let sanitized = str.replace(/<[^>]*>?/gm, '');
++    // Then escape any potentially dangerous characters
++    sanitized = sanitized
++      .replace(/&/g, '&amp;')
++      .replace(/</g, '&lt;')
++      .replace(/>/g, '&gt;')
++      .replace(/"/g, '&quot;')
++      .replace(/'/g, '&#x27;');
++    return sanitized;
++  }
++
++  function handleTaskSubmit(event) {
++    event.preventDefault();
++    if (state.editingTaskId) {
++      return showAlert("E008");
++    }
++
++    const title = sanitize(elements.taskTitle.value.trim());
++    const estimateRaw = elements.taskEstimate.value.trim();
++
++    if (!title) {
++      showAlert("E001");
++      return;
++    }
++    if (title.length > 100) {
++      showAlert("E002");
++      return;
++    }
++
++    let estimate = null;
++    if (estimateRaw) {
++      const parsed = Number.parseInt(estimateRaw, 10);
++      if (Number.isNaN(parsed) || parsed < 1 || parsed > 20) {
++        showAlert(null, "見積もりは1〜20の範囲で入力してください");
++        return;
++      }
++      estimate = parsed;
++    }
++
++    const newTask = {
++      id: `task_${Date.now()}`,
++      title,
++      completed: false,
++      estimatedPomodoros: estimate,
++      actualPomodoros: 0,
++      createdAt: new Date().toISOString(),
++      completedAt: null
++    };
++
++    state.tasks = [newTask, ...state.tasks];
++    elements.taskTitle.value = "";
++    elements.taskEstimate.value = "";
++    showAlert(null, "");
++    persistTasks();
++    renderTasks(true);
++  }
++
++  function handleTaskListChange(event) {
++    const checkbox = event.target;
++    if (!checkbox.matches("[data-role='toggle']")) return;
++
++    const taskId = checkbox.closest("[data-task-id]").dataset.taskId;
++    toggleTaskCompletion(taskId, checkbox.checked);
++  }
++
++  function handleTaskListClick(event) {
++    const actionButton = event.target.closest("[data-action]");
++    if (actionButton) {
++      const taskId = actionButton.closest("[data-task-id]").dataset.taskId;
++      if (actionButton.dataset.action === "edit") {
++        return requestEditTask(taskId);
++      }
++      if (actionButton.dataset.action === "delete") {
++        return requestDeleteTask(taskId, actionButton);
++      }
++    }
++
++    const selectable = event.target.closest("[data-role='select-task']");
++    if (selectable) {
++      const taskId = selectable.closest("[data-task-id]").dataset.taskId;
++      selectTask(taskId);
++    }
++  }
++
++  function handleTaskListKeydown(event) {
++    if (event.key !== "Enter" && event.key !== " ") return;
++    const selectable = event.target.closest("[data-role='select-task']");
++    if (!selectable) return;
++    event.preventDefault();
++    const taskId = selectable.closest("[data-task-id]").dataset.taskId;
++    selectTask(taskId);
++  }
++
++  function handleTimerControlClick(event) {
++    const button = event.target.closest("[data-action]");
++    if (!button) return;
++
++    switch (button.dataset.action) {
++      case "start":
++        startTimer();
++        break;
++      case "pause":
++        pauseTimer();
++        break;
++      case "reset":
++        resetTimer();
++        break;
++      default:
++        break;
++    }
++  }
++
++  function handleVisibilityChange() {
++    if (document.visibilityState !== "visible" && state.timer.isRunning) {
++      persistTimer();
++    }
++  }
++
++  function renderTasks(withAnimation = false) {
++    // Use DocumentFragment to batch DOM operations for better performance
++    const fragment = document.createDocumentFragment();
++    
++    // Clear the list efficiently
++    elements.taskList.textContent = '';
++    
++    // Create task items and append to fragment
++    getTasksByFilter().forEach((task) => {
++      const item = createTaskItem(task);
++      if (withAnimation) {
++        item.classList.add("entering");
++        item.addEventListener(
++          "animationend",
++          () => item.classList.remove("entering"),
++          { once: true }
++        );
++      }
++      fragment.appendChild(item);
++    });
++
++    // Single DOM operation to append all items
++    elements.taskList.appendChild(fragment);
++  }
++
++  function getTasksByFilter() {
++    return state.tasks.filter((task) => {
++      if (state.filter === "active") return !task.completed;
++      if (state.filter === "completed") return task.completed;
++      return true;
++    });
++  }
++
++  function createTaskItem(task) {
++    const item = document.createElement("li");
++    item.className = "task-item";
++    item.dataset.taskId = task.id;
++
++    if (task.completed) item.classList.add("completed");
++    if (task.id === state.selectedTaskId) item.classList.add("selected");
++
++    const checkbox = document.createElement("input");
++    checkbox.type = "checkbox";
++    checkbox.className = "task-checkbox";
++    checkbox.checked = Boolean(task.completed);
++    checkbox.setAttribute("aria-label", `${task.title} を完了にする`);
++    checkbox.dataset.role = "toggle";
++    // Enhance accessibility with proper ARIA attributes
++    checkbox.setAttribute("aria-checked", task.completed ? "true" : "false");
++    checkbox.setAttribute("role", "checkbox");
++
++    const content = document.createElement("div");
++    content.className = "task-content";
++    content.dataset.role = "select-task";
++    content.tabIndex = 0;
++    content.setAttribute("role", "button");
++    content.setAttribute("aria-pressed", task.id === state.selectedTaskId ? "true" : "false");
++    // Enhance accessibility with proper ARIA labels
++    content.setAttribute("aria-label", `タスク: ${task.title}. ${task.completed ? '完了済み' : '未完了'}. ${task.id === state.selectedTaskId ? '選択中' : '未選択'}`);
++
++    const title = document.createElement("p");
++    title.className = "task-title";
++    title.textContent = sanitize(task.title);
++
++    const meta = document.createElement("div");
++    meta.className = "task-meta";
++
++    const pomodoroBadge = document.createElement("span");
++    pomodoroBadge.className = "task-meta__badge";
++    pomodoroBadge.dataset.status = derivePomodoroStatus(task);
++    const estimateText =
++      typeof task.estimatedPomodoros === "number"
++        ? `${task.actualPomodoros}/${task.estimatedPomodoros}`
++        : `${task.actualPomodoros}`;
++    pomodoroBadge.textContent = `🍅 ${estimateText}`;
++
++    const createdTime = document.createElement("span");
++    createdTime.textContent = formatRelativeTime(task.createdAt);
++
++    meta.append(pomodoroBadge, createdTime);
++    content.append(title, meta);
++
++    const actions = document.createElement("div");
++    actions.className = "task-actions";
++
++    const editButton = document.createElement("button");
++    editButton.type = "button";
++    editButton.className = "task-action";
++    editButton.dataset.action = "edit";
++    editButton.setAttribute("aria-label", "タスクを編集");
++    editButton.textContent = "編集";
++
++    const deleteButton = document.createElement("button");
++    deleteButton.type = "button";
++    deleteButton.className = "task-action";
++    deleteButton.dataset.action = "delete";
++    deleteButton.setAttribute("aria-label", "タスクを削除");
++    deleteButton.textContent = "削除";
++
++    actions.append(editButton, deleteButton);
++    item.append(checkbox, content, actions);
++    return item;
++  }
++
++  function derivePomodoroStatus(task) {
++    if (typeof task.estimatedPomodoros !== "number") return "open";
++    if (task.actualPomodoros === task.estimatedPomodoros) return "achieved";
++    if (task.actualPomodoros > task.estimatedPomodoros) return "over";
++    return "open";
++  }
++
++  function toggleTaskCompletion(taskId, completed) {
++    if (state.timer.isRunning && state.timer.currentTaskId === taskId) {
++      showAlert(null, "タイマーを停止してから操作してください");
++      renderTasks();
++      return;
++    }
++
++    const task = state.tasks.find((t) => t.id === taskId);
++    if (!task) return;
++    task.completed = completed;
++    task.completedAt = completed ? new Date().toISOString() : null;
++    persistTasks();
++    recomputeTodayCompletedTasks();
++    persistToday();
++    renderTasks();
++    updateStatsDisplay();
++    updateTodaySummaryDisplay();
++  }
++
++  function requestEditTask(taskId) {
++    if (state.timer.isRunning) {
++      showAlert("E008");
++      return;
++    }
++    const task = state.tasks.find((t) => t.id === taskId);
++    if (!task) return;
++
++    state.editingTaskId = taskId;
++    const nextTitle = window.prompt("タスク名を編集", sanitize(task.title));
++    if (nextTitle === null) {
++      state.editingTaskId = null;
++      return;
++    }
++
++    const trimmed = sanitize(nextTitle.trim());
++    if (!trimmed) {
++      showAlert("E001");
++      state.editingTaskId = null;
++      return;
++    }
++    if (trimmed.length > 100) {
++      showAlert("E002");
++      state.editingTaskId = null;
++      return;
++    }
++
++    task.title = trimmed;
++    task.updatedAt = new Date().toISOString();
++    state.editingTaskId = null;
++    persistTasks();
++    renderTasks();
++  }
++
++  function requestDeleteTask(taskId, control) {
++    if (state.timer.isRunning) {
++      showAlert("E004");
++      return;
++    }
++    const taskIndex = state.tasks.findIndex((t) => t.id === taskId);
++    if (taskIndex === -1) return;
++
++    const listItem = control.closest(".task-item");
++    listItem.classList.add("removing");
++    listItem.addEventListener(
++      "animationend",
++      () => {
++        state.tasks.splice(taskIndex, 1);
++        if (state.selectedTaskId === taskId) {
++          state.selectedTaskId = null;
++          state.timer.currentTaskId = null;
++          updateSelectedTaskLabel();
++        }
++        persistTasks();
++        recomputeTodayCompletedTasks();
++        persistToday();
++        renderTasks();
++        updateStatsDisplay();
++        updateTodaySummaryDisplay();
++      },
++      { once: true }
++    );
++  }
++
++  function selectTask(taskId) {
++    if (state.timer.isRunning) {
++      showAlert(null, "タイマーを停止してから選択してください");
++      return;
++    }
++    if (!state.tasks.some((task) => task.id === taskId)) return;
++    state.selectedTaskId = taskId;
++    state.timer.currentTaskId = taskId;
++    updateSelectedTaskLabel();
++    persistTimer();
++    renderTasks();
++  }
++
++  function updateSelectedTaskLabel() {
++    if (!state.selectedTaskId) {
++      elements.selectedTaskLabel.textContent = "タスクを選択してください";
++      return;
++    }
++    const task = state.tasks.find((t) => t.id === state.selectedTaskId);
++    if (!task) {
++      elements.selectedTaskLabel.textContent = "タスクを選択してください";
++      return;
++    }
++    elements.selectedTaskLabel.textContent = `選択中: ${sanitize(task.title)}`;
++  }
++
++  function setFilter(filter) {
++    state.filter = filter;
++    state.settings.filterState = filter;
++    persistSettings();
++    updateFilterUI();
++    renderTasks();
++  }
++
++  function updateFilterUI() {
++    elements.filterButtons.forEach((button) => {
++      button.classList.toggle("is-active", button.dataset.filter === state.filter);
++    });
++  }
++
++  function startTimer() {
++    if (state.timer.isRunning) return;
++    if (state.editingTaskId) {
++      showAlert("E008");
++      return;
++    }
++    if (state.timer.mode === "work" && !state.selectedTaskId) {
++      showAlert("E003");
++      return;
++    }
++
++    if (state.timer.mode === "work") {
++      state.timer.currentTaskId = state.selectedTaskId;
++      if ("Notification" in window && Notification.permission === "default") {
++        Notification.requestPermission().catch(() => {});
++      }
++    }
++
++    state.timer.isRunning = true;
++    state.timer.isPaused = false;
++    const now = Date.now();
++    state.timer.startedAt = new Date(now).toISOString();
++    state.timer.targetTimestamp = now + state.timer.remainingTime * 1000;
++    persistTimer();
++    startTicking();
++    updateTimerStateLabel();
++    elements.timer.classList.add("running");
++  }
++
++  function startTicking() {
++    clearInterval(timerInterval);
++    timerInterval = window.setInterval(tick, 250);
++    tick();
++  }
++
++  function tick() {
++    if (!state.timer.isRunning || !state.timer.targetTimestamp) return;
++    const remaining = Math.max(0, Math.round((state.timer.targetTimestamp - Date.now()) / 1000));
++    state.timer.remainingTime = remaining;
++    updateTimerDisplay();
++
++    if (remaining <= 0) {
++      completeTimerCycle();
++    }
++  }
++
++  function pauseTimer() {
++    if (!state.timer.isRunning) return;
++    state.timer.isRunning = false;
++    state.timer.isPaused = true;
++    if (state.timer.targetTimestamp) {
++      const remaining = Math.max(0, Math.round((state.timer.targetTimestamp - Date.now()) / 1000));
++      state.timer.remainingTime = remaining;
++    }
++    state.timer.targetTimestamp = null;
++    clearInterval(timerInterval);
++    persistTimer();
++    updateTimerStateLabel();
++    elements.timer.classList.remove("running");
++    updateTimerDisplay();
++  }
++
++  function resetTimer() {
++    const confirmed = window.confirm(ERROR_MESSAGES.E007);
++    if (!confirmed) return;
++    clearInterval(timerInterval);
++    state.timer.isRunning = false;
++    state.timer.isPaused = false;
++    state.timer.targetTimestamp = null;
++    state.timer.remainingTime = getModeDuration(state.timer.mode);
++    state.timer.startedAt = null;
++    state.timer.currentTaskId = state.selectedTaskId;
++    updateTimerStateLabel();
++    persistTimer();
++    updateTimerDisplay();
++    elements.timer.classList.remove("running");
++  }
++
++  function completeTimerCycle() {
++    clearInterval(timerInterval);
++    state.timer.isRunning = false;
++    state.timer.isPaused = false;
++    state.timer.targetTimestamp = null;
++    state.timer.remainingTime = 0;
++    updateTimerDisplay();
++    updateTimerStateLabel();
++    elements.timer.classList.remove("running");
++    handleTimerCompletionEffects();
++    advanceTimerMode();
++    persistAll();
++  }
++
++  function advanceTimerMode() {
++    if (state.timer.mode === "work") {
++      state.timer.mode = "break";
++      state.timer.remainingTime = getModeDuration("break");
++    } else {
++      state.timer.mode = "work";
++      state.timer.remainingTime = getModeDuration("work");
++    }
++    updateTimerDetails();
++    updateTimerDisplay();
++  }
++
++  function handleTimerCompletionEffects() {
++    triggerVisualNotification();
++    playNotificationSound();
++    dispatchBrowserNotification();
++
++    if (state.timer.mode !== "work" || !state.timer.currentTaskId) {
++      updateTimerDetails();
++      return;
++    }
++
++    const task = state.tasks.find((t) => t.id === state.timer.currentTaskId);
++    if (!task) {
++      updateTimerDetails();
++      return;
++    }
++
++    task.actualPomodoros += 1;
++    state.today.pomodoros += 1;
++    state.today.totalMinutes += state.settings.workDuration;
++    recomputeTodayCompletedTasks();
++
++    if (!state.today.lastTaskId || state.today.lastTaskId === task.id) {
++      state.today.currentStreak = (state.today.currentStreak || 0) + 1;
++    } else {
++      state.today.currentStreak = 1;
++    }
++    state.today.lastTaskId = task.id;
++    state.timer.pomodoroCount = state.today.pomodoros;
++
++    persistTasks();
++    persistToday();
++    updateStatsDisplay();
++    updateTodaySummaryDisplay();
++    renderTasks();
++  }
++
++  function triggerVisualNotification() {
++    elements.visualNotification.classList.remove("is-active");
++    // Force reflow to restart animation
++    void elements.visualNotification.offsetWidth;
++    elements.visualNotification.classList.add("is-active");
++    window.setTimeout(() => {
++      elements.visualNotification.classList.remove("is-active");
++    }, 1800);
++  }
++
++  function playNotificationSound() {
++    if (state.settings.notificationSound === "silent") return;
++    try {
++      if (!audioContext) {
++        const AudioCtx = window.AudioContext || window.webkitAudioContext;
++        audioContext = new AudioCtx();
++      }
++      const now = audioContext.currentTime;
++      for (let i = 0; i < 3; i += 1) {
++        const oscillator = audioContext.createOscillator();
++        const gain = audioContext.createGain();
++        oscillator.type = "sine";
++        oscillator.frequency.setValueAtTime(880, now + i * 0.2);
++        gain.gain.setValueAtTime(0, now + i * 0.2);
++        gain.gain.linearRampToValueAtTime(0.2, now + i * 0.2 + 0.05);
++        gain.gain.linearRampToValueAtTime(0, now + i * 0.2 + 0.18);
++        oscillator.connect(gain).connect(audioContext.destination);
++        oscillator.start(now + i * 0.2);
++        oscillator.stop(now + i * 0.2 + 0.2);
++      }
++    } catch (error) {
++      console.warn("Audio playback failed", error);
++    }
++  }
++
++  function dispatchBrowserNotification() {
++    if (!("Notification" in window)) return;
++    if (Notification.permission !== "granted") return;
++    const body = state.timer.mode === "work" ? "休憩を取りましょう" : "次のタスクに戻りましょう";
++    const title = state.timer.mode === "work" ? "作業完了" : "休憩終了";
++    try {
++      new Notification(title, { body, silent: true });
++    } catch (error) {
++      console.warn("Notification failed", error);
++    }
++  }
++
++  function updateTimerDisplay() {
++    const formatted = formatTime(state.timer.remainingTime);
++    elements.timeDisplay.textContent = formatted;
++
++    const duration = getModeDuration(state.timer.mode);
++    const progress = duration === 0 ? 0 : ((duration - state.timer.remainingTime) / duration) * 100;
++    elements.progress.style.width = `${Math.min(100, Math.max(0, progress))}%`;
++    elements.timer.querySelector(".timer__progress").setAttribute("aria-valuenow", String(Math.floor(progress)));
++
++    if (state.timer.mode === "work") {
++      elements.modeLabel.textContent = "作業モード";
++      elements.timerMode.textContent = "作業";
++    } else {
++      elements.modeLabel.textContent = "休憩モード";
++      elements.timerMode.textContent = "休憩";
++    }
++
++    elements.timerPomodoros.textContent = String(state.today.pomodoros);
++  }
++
++  function updateTimerDetails() {
++    updateTimerStateLabel();
++    updateTimerDisplay();
++  }
++
++  function updateTimerStateLabel() {
++    if (state.timer.isRunning) {
++      elements.timerState.textContent = "実行中";
++      return;
++    }
++    if (state.timer.isPaused) {
++      elements.timerState.textContent = "一時停止";
++      return;
++    }
++    elements.timerState.textContent = "停止中";
++  }
++
++  function updateStatsDisplay() {
++    const today = getTodayKey();
++    const completedToday = state.tasks.filter(
++      (task) => task.completedAt && task.completedAt.startsWith(today)
++    ).length;
++
++    elements.statsTasks.textContent = String(completedToday);
++    elements.statsPomodoros.textContent = String(state.today.pomodoros);
++    elements.statsTime.textContent = `${state.today.totalMinutes}分`;
++    elements.statsStreak.textContent = String(state.today.currentStreak || 0);
++  }
++
++  function updateTodaySummaryDisplay() {
++    elements.todayPomodoros.textContent = `🍅 ${state.today.pomodoros}`;
++    elements.todayTasks.textContent = String(state.today.completedTasks);
++    const hours = Math.floor(state.today.totalMinutes / 60);
++    const minutes = state.today.totalMinutes % 60;
++    elements.todayTime.textContent = `${hours}h ${minutes}m`;
++  }
++
++  function loadState() {
++    state.settings = { ...DEFAULT_SETTINGS, ...safeParseStorage(STORAGE_KEYS.SETTINGS) };
++    state.filter = state.settings.filterState || "all";
++
++    const storedTasks = safeParseStorage(STORAGE_KEYS.TASKS, []);
++    if (Array.isArray(storedTasks)) {
++      state.tasks = storedTasks.map(normalizeTask);
++    }
++
++    const storedTimer = safeParseStorage(STORAGE_KEYS.TIMER, {});
++    state.timer = { ...DEFAULT_TIMER, ...sanitizeTimer(storedTimer) };
++    state.selectedTaskId = state.timer.currentTaskId;
++
++    const storedHistory = safeParseStorage(STORAGE_KEYS.HISTORY, []);
++    if (Array.isArray(storedHistory)) {
++      state.history = storedHistory;
++    }
++
++    const todayKey = getTodayKey();
++    const storedToday = safeParseStorage(STORAGE_KEYS.TODAY);
++    if (storedToday && storedToday.date === todayKey) {
++      state.today = { ...createTodaySummary(todayKey), ...storedToday };
++    } else {
++      state.today = createTodaySummary(todayKey);
++    }
++    state.timer.pomodoroCount = state.today.pomodoros;
++  }
++
++  function persistAll() {
++    persistTasks();
++    persistSettings();
++    persistTimer();
++    persistToday();
++    persistHistory();
++  }
++
++  function persistTasks() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(state.tasks));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistSettings() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(state.settings));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistTimer() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.TIMER, JSON.stringify(state.timer));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistToday() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.TODAY, JSON.stringify(state.today));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function persistHistory() {
++    try {
++      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(state.history));
++    } catch (error) {
++      handleStorageError(error);
++    }
++  }
++
++  function handleStorageError(error) {
++    if (error && error.name === "QuotaExceededError") {
++      showAlert("E005");
++    } else {
++      showAlert("E006");
++    }
++  }
++
++  function restoreTimerState() {
++    if (!state.timer.isRunning || !state.timer.targetTimestamp) {
++      if (!Number.isFinite(state.timer.remainingTime) || state.timer.remainingTime <= 0) {
++        state.timer.remainingTime = getModeDuration(state.timer.mode);
++      }
++      updateTimerDisplay();
++      updateTimerStateLabel();
++      return;
++    }
++
++    const remaining = Math.max(0, Math.round((state.timer.targetTimestamp - Date.now()) / 1000));
++    state.timer.remainingTime = remaining;
++    if (remaining <= 0) {
++      completeTimerCycle();
++    } else {
++      startTicking();
++      elements.timer.classList.add("running");
++      updateTimerStateLabel();
++    }
++  }
++
++  function checkDayRollover() {
++    const todayKey = getTodayKey();
++    if (state.today.date === todayKey) return;
++    state.history = state.history.filter((entry) => entry && entry.date);
++    state.history.push({ ...state.today });
++    if (state.history.length > 30) {
++      state.history = state.history.slice(-30);
++    }
++    state.today = createTodaySummary(todayKey);
++    state.timer.pomodoroCount = 0;
++    updateStatsDisplay();
++    updateTodaySummaryDisplay();
++    persistToday();
++    persistHistory();
++  }
++
++  function showAlert(code, overrideMessage) {
++    const message = overrideMessage !== undefined ? overrideMessage : ERROR_MESSAGES[code] || "";
++    if (!elements.alert) return;
++    elements.alert.textContent = message || "";
++    if (!message) {
++      elements.alert.classList.remove("is-visible");
++    } else {
++      elements.alert.classList.add("is-visible");
++    }
++  }
++
++  function safeParseStorage(key, fallback) {
++    try {
++      const raw = localStorage.getItem(key);
++      if (!raw) return fallback;
++      return JSON.parse(raw);
++    } catch (error) {
++      handleStorageError(error);
++      return fallback;
++    }
++  }
++
++  function normalizeTask(task) {
++    return {
++      id: task.id || `task_${Date.now()}`,
++      title: typeof task.title === "string" ? task.title : "名称未設定",
++      completed: Boolean(task.completed),
++      estimatedPomodoros: sanitizeNumber(task.estimatedPomodoros, null),
++      actualPomodoros: sanitizeNumber(task.actualPomodoros, 0),
++      createdAt: task.createdAt || new Date().toISOString(),
++      completedAt: task.completedAt || null
++    };
++  }
++
++  function sanitizeTimer(timer) {
++    const sanitized = { ...timer };
++    sanitized.mode = timer.mode === "break" ? "break" : "work";
++    sanitized.remainingTime = sanitizeNumber(timer.remainingTime, getModeDuration(sanitized.mode));
++    sanitized.isRunning = Boolean(timer.isRunning);
++    sanitized.isPaused = Boolean(timer.isPaused);
++    sanitized.currentTaskId = timer.currentTaskId || null;
++    sanitized.startedAt = timer.startedAt || null;
++    sanitized.targetTimestamp = timer.targetTimestamp || null;
++    sanitized.pomodoroCount = sanitizeNumber(timer.pomodoroCount, 0);
++    return sanitized;
++  }
++
++  function sanitizeNumber(value, fallback) {
++    const num = Number.parseInt(value, 10);
++    return Number.isFinite(num) ? num : fallback;
++  }
++
++  function getModeDuration(mode) {
++    if (mode === "break") {
++      return clamp(state.settings.shortBreakDuration, 1, 30) * 60;
++    }
++    return clamp(state.settings.workDuration, 1, 60) * 60;
++  }
++
++  function clamp(value, min, max) {
++    const num = Number(value);
++    if (!Number.isFinite(num)) return min;
++    return Math.min(Math.max(num, min), max);
++  }
++
++  function formatTime(totalSeconds) {
++    const seconds = Math.max(0, Number.parseInt(totalSeconds, 10) || 0);
++    const mins = Math.floor(seconds / 60)
++      .toString()
++      .padStart(2, "0");
++    const secs = Math.floor(seconds % 60)
++      .toString()
++      .padStart(2, "0");
++    return `${mins}:${secs}`;
++  }
++
++  function formatRelativeTime(isoString) {
++    if (!isoString) return "";
++    const created = new Date(isoString);
++    if (Number.isNaN(created.getTime())) return "";
++    const diff = Date.now() - created.getTime();
++    if (diff < 60 * 1000) return "たった今";
++    if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}分前`;
++    if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}時間前`;
++    return created.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
++  }
++
++  function getTodayKey() {
++    return new Date().toISOString().slice(0, 10);
++  }
++
++  function createTodaySummary(date) {
++    return {
++      date,
++      pomodoros: 0,
++      completedTasks: 0,
++      totalMinutes: 0,
++      currentStreak: 0,
++      lastTaskId: null
++    };
++  }
++
++  function recomputeTodayCompletedTasks() {
++    const todayKey = getTodayKey();
++    const completedToday = state.tasks.filter(
++      (task) => task.completedAt && task.completedAt.startsWith(todayKey)
++    ).length;
++    state.today.completedTasks = completedToday;
++  }
++
++  init();
++})();
+diff --git a/app.testable.js b/app.testable.js
+new file mode 100644
+index 0000000..4f12ef3
+--- /dev/null
++++ b/app.testable.js
+@@ -0,0 +1,290 @@
++"use strict";
++
++// ============================================================================
++// Constants
++// ============================================================================
++
++const STORAGE_KEYS = Object.freeze({
++  TASKS: "pomotodo_tasks",
++  TIMER: "pomotodo_timer",
++  SETTINGS: "pomotodo_settings",
++  TODAY: "pomotodo_today",
++  HISTORY: "pomotodo_history"
++});
++
++const ERROR_MESSAGES = Object.freeze({
++  E001: "タスク名を入力してください",
++  E002: "タスク名は100文字以内で入力してください",
++  E003: "タスクを選択してください",
++  E004: "タイマーを停止してから削除してください",
++  E005: "保存容量が不足しています",
++  E006: "データの保存ができません",
++  E007: "タイマーをリセットしますか？",
++  E008: "編集を完了してください"
++});
++
++const DEFAULT_SETTINGS = Object.freeze({
++  workDuration: 25,
++  shortBreakDuration: 5,
++  notificationSound: "beep",
++  focusMode: false,
++  filterState: "all"
++});
++
++const DEFAULT_TIMER = Object.freeze({
++  mode: "work",
++  remainingTime: DEFAULT_SETTINGS.workDuration * 60,
++  isRunning: false,
++  isPaused: false,
++  currentTaskId: null,
++  startedAt: null,
++  targetTimestamp: null,
++  pomodoroCount: 0
++});
++
++// ============================================================================
++// Pure Functions (Testable)
++// ============================================================================
++
++/**
++ * Enhanced sanitizer to prevent XSS attacks
++ * @param {string} str - String to sanitize
++ * @returns {string} Sanitized string
++ */
++function sanitize(str) {
++  if (typeof str !== 'string') return '';
++  // First, remove HTML tags
++  let sanitized = str.replace(/<[^>]*>?/gm, '');
++  // Then escape any potentially dangerous characters
++  sanitized = sanitized
++    .replace(/&/g, '&amp;')
++    .replace(/</g, '&lt;')
++    .replace(/>/g, '&gt;')
++    .replace(/"/g, '&quot;')
++    .replace(/'/g, '&#x27;');
++  return sanitized;
++}
++
++/**
++ * Format time in MM:SS format
++ * @param {number} totalSeconds - Total seconds
++ * @returns {string} Formatted time string
++ */
++function formatTime(totalSeconds) {
++  const seconds = Math.max(0, Number.parseInt(totalSeconds, 10) || 0);
++  const mins = Math.floor(seconds / 60)
++    .toString()
++    .padStart(2, "0");
++  const secs = Math.floor(seconds % 60)
++    .toString()
++    .padStart(2, "0");
++  return `${mins}:${secs}`;
++}
++
++/**
++ * Format relative time from ISO string
++ * @param {string} isoString - ISO date string
++ * @returns {string} Relative time string
++ */
++function formatRelativeTime(isoString) {
++  if (!isoString) return "";
++  const created = new Date(isoString);
++  if (Number.isNaN(created.getTime())) return "";
++  const diff = Date.now() - created.getTime();
++  if (diff < 60 * 1000) return "たった今";
++  if (diff < 60 * 60 * 1000) return `${Math.floor(diff / 60000)}分前`;
++  if (diff < 24 * 60 * 60 * 1000) return `${Math.floor(diff / (60 * 60 * 1000))}時間前`;
++  return created.toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" });
++}
++
++/**
++ * Sanitize number with fallback
++ * @param {*} value - Value to sanitize
++ * @param {*} fallback - Fallback value
++ * @returns {number|*} Sanitized number or fallback
++ */
++function sanitizeNumber(value, fallback) {
++  const num = Number.parseInt(value, 10);
++  return Number.isFinite(num) ? num : fallback;
++}
++
++/**
++ * Get mode duration in seconds
++ * @param {string} mode - Timer mode ("work" or "break")
++ * @param {Object} settings - Settings object
++ * @returns {number} Duration in seconds
++ */
++function getModeDuration(mode, settings) {
++  if (mode === "break") {
++    return clamp(settings.shortBreakDuration, 1, 30) * 60;
++  }
++  return clamp(settings.workDuration, 1, 60) * 60;
++}
++
++/**
++ * Clamp value between min and max
++ * @param {number} value - Value to clamp
++ * @param {number} min - Minimum value
++ * @param {number} max - Maximum value
++ * @returns {number} Clamped value
++ */
++function clamp(value, min, max) {
++  const num = Number(value);
++  if (!Number.isFinite(num)) return min;
++  return Math.min(Math.max(num, min), max);
++}
++
++/**
++ * Normalize task object
++ * @param {Object} task - Task object
++ * @returns {Object} Normalized task
++ */
++function normalizeTask(task) {
++  return {
++    id: task.id || `task_${Date.now()}`,
++    title: typeof task.title === "string" ? task.title : "名称未設定",
++    completed: Boolean(task.completed),
++    estimatedPomodoros: sanitizeNumber(task.estimatedPomodoros, null),
++    actualPomodoros: sanitizeNumber(task.actualPomodoros, 0),
++    createdAt: task.createdAt || new Date().toISOString(),
++    completedAt: task.completedAt || null
++  };
++}
++
++/**
++ * Sanitize timer object
++ * @param {Object} timer - Timer object
++ * @param {Object} settings - Settings object
++ * @returns {Object} Sanitized timer
++ */
++function sanitizeTimer(timer, settings) {
++  const sanitized = { ...timer };
++  sanitized.mode = timer.mode === "break" ? "break" : "work";
++  sanitized.remainingTime = sanitizeNumber(timer.remainingTime, getModeDuration(sanitized.mode, settings));
++  sanitized.isRunning = Boolean(timer.isRunning);
++  sanitized.isPaused = Boolean(timer.isPaused);
++  sanitized.currentTaskId = timer.currentTaskId || null;
++  sanitized.startedAt = timer.startedAt || null;
++  sanitized.targetTimestamp = timer.targetTimestamp || null;
++  sanitized.pomodoroCount = sanitizeNumber(timer.pomodoroCount, 0);
++  return sanitized;
++}
++
++/**
++ * Derive pomodoro status from task
++ * @param {Object} task - Task object
++ * @returns {string} Status ("open", "achieved", "over")
++ */
++function derivePomodoroStatus(task) {
++  if (typeof task.estimatedPomodoros !== "number") return "open";
++  if (task.actualPomodoros === task.estimatedPomodoros) return "achieved";
++  if (task.actualPomodoros > task.estimatedPomodoros) return "over";
++  return "open";
++}
++
++/**
++ * Get today's date key (YYYY-MM-DD)
++ * @returns {string} Today's date key
++ */
++function getTodayKey() {
++  return new Date().toISOString().slice(0, 10);
++}
++
++/**
++ * Create today summary object
++ * @param {string} date - Date key (YYYY-MM-DD)
++ * @returns {Object} Today summary object
++ */
++function createTodaySummary(date) {
++  return {
++    date,
++    pomodoros: 0,
++    completedTasks: 0,
++    totalMinutes: 0,
++    currentStreak: 0,
++    lastTaskId: null
++  };
++}
++
++/**
++ * Recompute today's completed tasks count
++ * @param {Object} state - State object
++ * @returns {number} Count of completed tasks today
++ */
++function recomputeTodayCompletedTasks(state) {
++  const todayKey = getTodayKey();
++  const completedToday = state.tasks.filter(
++    (task) => task.completedAt && task.completedAt.startsWith(todayKey)
++  ).length;
++  state.today.completedTasks = completedToday;
++  return completedToday;
++}
++
++/**
++ * Safe parse from localStorage
++ * @param {string} key - Storage key
++ * @param {*} fallback - Fallback value
++ * @param {Function} errorHandler - Error handler function
++ * @returns {*} Parsed value or fallback
++ */
++function safeParseStorage(key, fallback, errorHandler) {
++  try {
++    const raw = localStorage.getItem(key);
++    if (!raw) return fallback;
++    return JSON.parse(raw);
++  } catch (error) {
++    if (errorHandler) {
++      errorHandler(error);
++    }
++    return fallback;
++  }
++}
++
++/**
++ * Handle storage error
++ * @param {Error} error - Error object
++ * @param {Object} elements - Elements object with alert element
++ */
++function handleStorageError(error, elements) {
++  if (!elements || !elements.alert) return;
++
++  let message = "";
++  if (error && error.name === "QuotaExceededError") {
++    message = ERROR_MESSAGES.E005;
++  } else {
++    message = ERROR_MESSAGES.E006;
++  }
++
++  elements.alert.textContent = message;
++  elements.alert.classList.add("is-visible");
++}
++
++// ============================================================================
++// Export for testing
++// ============================================================================
++
++if (typeof module !== 'undefined' && module.exports) {
++  module.exports = {
++    // Constants
++    STORAGE_KEYS,
++    ERROR_MESSAGES,
++    DEFAULT_SETTINGS,
++    DEFAULT_TIMER,
++
++    // Pure functions
++    sanitize,
++    formatTime,
++    formatRelativeTime,
++    sanitizeNumber,
++    getModeDuration,
++    clamp,
++    normalizeTask,
++    sanitizeTimer,
++    derivePomodoroStatus,
++    getTodayKey,
++    createTodaySummary,
++    recomputeTodayCompletedTasks,
++    safeParseStorage,
++    handleStorageError
++  };
++}
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000..f386166
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,125 @@
++<!DOCTYPE html>
++<html lang="ja">
++  <head>
++    <meta charset="utf-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1" />
++    <title>PomoTodo | ポモドーロタスクマネージャー</title>
++    <link rel="stylesheet" href="./style.css" />
++  </head>
++  <body>
++    <div class="app" data-element="appRoot">
++      <header class="app__header" role="banner">
++        <div class="app__title-group">
++          <h1 class="app__title">PomoTodo</h1>
++          <p class="app__subtitle">集中とタスク管理をシームレスに</p>
++        </div>
++        <div class="today-summary" aria-live="polite">
++          <div class="summary-card" data-summary="pomodoros" aria-label="今日完了したポモドーロ数">
++            <span class="summary-card__label">Today</span>
++            <span class="summary-card__value" data-text="todayPomodoros">🍅 0</span>
++          </div>
++          <div class="summary-card" data-summary="tasks" aria-label="今日完了したタスク数">
++            <span class="summary-card__label">Tasks</span>
++            <span class="summary-card__value" data-text="todayTasks">0</span>
++          </div>
++          <div class="summary-card" data-summary="time" aria-label="今日の作業時間">
++            <span class="summary-card__label">Focus</span>
++            <span class="summary-card__value" data-text="todayTime">0h 0m</span>
++          </div>
++        </div>
++      </header>
++
++      <main class="app__main" role="main">
++        <section class="panel panel--tasks" aria-labelledby="tasksHeading">
++          <div class="panel__header">
++            <h2 id="tasksHeading" class="panel__title">タスク</h2>
++            <div class="panel__filters" role="radiogroup" aria-label="タスクフィルタ">
++              <button type="button" class="filter-button is-active" data-filter="all">全て</button>
++              <button type="button" class="filter-button" data-filter="active">未完了</button>
++              <button type="button" class="filter-button" data-filter="completed">完了済み</button>
++            </div>
++          </div>
++
++          <form class="task-form" data-task-form autocomplete="off" novalidate>
++            <label class="sr-only" for="taskTitle">タスク名</label>
++            <input
++              id="taskTitle"
++              class="task-form__input"
++              type="text"
++              name="title"
++              maxlength="100"
++              placeholder="タスク名を入力 (最大100文字)"
++              required
++            />
++            <label class="task-form__estimate-label" for="taskEstimate">🍅</label>
++            <input
++              id="taskEstimate"
++              class="task-form__estimate"
++              type="number"
++              name="estimate"
++              min="1"
++              max="20"
++              inputmode="numeric"
++              placeholder="見積"
++            />
++            <button type="submit" class="btn btn--primary">追加</button>
++          </form>
++
++          <div class="alert" data-element="alert" role="alert" aria-live="assertive"></div>
++
++          <ul class="task-list" data-element="taskList" aria-live="polite"></ul>
++        </section>
++
++        <section class="panel panel--timer" aria-labelledby="timerHeading">
++          <div class="panel__header">
++            <h2 id="timerHeading" class="panel__title">ポモドーロタイマー</h2>
++            <p class="panel__subtitle" data-text="selectedTaskLabel">タスクを選択してください</p>
++          </div>
++
++          <div class="timer" data-element="timer">
++            <div class="timer__chip" data-text="modeLabel">作業モード</div>
++            <div class="timer__display" data-text="timeDisplay" aria-live="polite">25:00</div>
++            <div class="timer__progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
++              <div class="timer__progress-inner" data-element="progress"></div>
++            </div>
++          </div>
++
++          <div class="timer-controls" role="group" aria-label="タイマー操作">
++            <button type="button" class="btn btn--primary" data-action="start">開始</button>
++            <button type="button" class="btn btn--secondary" data-action="pause">一時停止</button>
++            <button type="button" class="btn btn--danger" data-action="reset">リセット</button>
++          </div>
++
++          <div class="timer-details">
++            <div class="timer-details__item">
++              <span class="timer-details__label">ポモドーロ数</span>
++              <span class="timer-details__value" data-text="timerPomodoros">0</span>
++            </div>
++            <div class="timer-details__item">
++              <span class="timer-details__label">モード</span>
++              <span class="timer-details__value" data-text="timerMode">作業</span>
++            </div>
++            <div class="timer-details__item">
++              <span class="timer-details__label">状態</span>
++              <span class="timer-details__value" data-text="timerState">停止中</span>
++            </div>
++          </div>
++
++          <div class="stats" aria-live="polite">
++            <h3 class="stats__title">今日の統計</h3>
++            <ul class="stats__list">
++              <li class="stats__item"><span>完了タスク</span><span data-text="statsTasks">0</span></li>
++              <li class="stats__item"><span>ポモドーロ</span><span data-text="statsPomodoros">0</span></li>
++              <li class="stats__item"><span>合計時間</span><span data-text="statsTime">0分</span></li>
++              <li class="stats__item"><span>連続数</span><span data-text="statsStreak">0</span></li>
++            </ul>
++          </div>
++        </section>
++      </main>
++
++      <div class="visual-notification" data-element="visualNotification" aria-hidden="true"></div>
++    </div>
++
++    <script src="./app.js" defer></script>
++  </body>
++</html>
+diff --git a/logs/claude-reviews/20251027_213433_23bd3b5_claude.log b/logs/claude-reviews/20251027_213433_23bd3b5_claude.log
+new file mode 100644
+index 0000000..e69de29
+diff --git a/style.css b/style.css
+new file mode 100644
+index 0000000..fde5a28
+--- /dev/null
++++ b/style.css
+@@ -0,0 +1,678 @@
++:root {
++  --primary-red: #e74c3c;
++  --primary-green: #27ae60;
++  --primary-blue: #2d9cdb;
++  --bg-main: #ffffff;
++  --bg-secondary: #f5f7fb;
++  --bg-hover: #eef2f8;
++  --text-primary: #2c3e50;
++  --text-secondary: #7f8c8d;
++  --text-disabled: #bdc3c7;
++  --border-color: #dde3ed;
++  --shadow-sm: 0 8px 24px rgba(15, 30, 65, 0.08);
++  --radius-md: 16px;
++  --radius-sm: 10px;
++  --font-size-base: 16px;
++  --font-size-lg: 20px;
++  --font-size-xl: 28px;
++  --font-size-2xl: 48px;
++  --transition-fast: 0.2s ease;
++  --transition-medium: 0.35s ease;
++}
++
++@media (prefers-color-scheme: dark) {
++  :root {
++    --bg-main: #1f242b;
++    --bg-secondary: #2b333d;
++    --bg-hover: #343d49;
++    --text-primary: #f3f6fb;
++    --text-secondary: #c3cad7;
++    --text-disabled: #8b95a6;
++    --border-color: #3d4653;
++    --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.4);
++  }
++}
++
++* {
++  box-sizing: border-box;
++}
++
++body {
++  margin: 0;
++  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
++  font-size: var(--font-size-base);
++  background: linear-gradient(180deg, #e9effa 0%, #fdfdff 40%, #ffffff 100%);
++  color: var(--text-primary);
++  min-height: 100vh;
++}
++
++.app {
++  min-height: 100vh;
++  display: flex;
++  flex-direction: column;
++  padding: 24px clamp(16px, 4vw, 48px);
++  gap: 24px;
++}
++
++.app__header {
++  display: flex;
++  flex-wrap: wrap;
++  align-items: center;
++  justify-content: space-between;
++  gap: 16px;
++}
++
++.app__title-group {
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++}
++
++.app__title {
++  margin: 0;
++  font-size: clamp(28px, 4vw, 36px);
++  font-weight: 700;
++}
++
++.app__subtitle {
++  margin: 0;
++  color: var(--text-secondary);
++  font-size: 0.95rem;
++}
++
++.today-summary {
++  display: flex;
++  gap: 12px;
++}
++
++.summary-card {
++  background: var(--bg-main);
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius-sm);
++  padding: 12px 16px;
++  box-shadow: var(--shadow-sm);
++  min-width: 110px;
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
++}
++
++.summary-card:hover {
++  transform: translateY(-4px);
++  box-shadow: 0 16px 32px rgba(15, 30, 65, 0.12);
++}
++
++.summary-card__label {
++  font-size: 0.75rem;
++  color: var(--text-secondary);
++}
++
++.summary-card__value {
++  font-size: 1.15rem;
++  font-weight: 600;
++}
++
++.app__main {
++  display: grid;
++  gap: 24px;
++}
++
++.panel {
++  background: var(--bg-main);
++  border-radius: var(--radius-md);
++  padding: clamp(20px, 3vw, 28px);
++  box-shadow: var(--shadow-sm);
++  display: flex;
++  flex-direction: column;
++  gap: 24px;
++}
++
++.panel__header {
++  display: flex;
++  flex-wrap: wrap;
++  justify-content: space-between;
++  gap: 12px;
++  align-items: center;
++}
++
++.panel__title {
++  margin: 0;
++  font-size: 1.5rem;
++}
++
++.panel__subtitle {
++  margin: 0;
++  color: var(--text-secondary);
++  font-size: 0.95rem;
++}
++
++.panel__filters {
++  display: flex;
++  gap: 8px;
++  align-items: center;
++}
++
++.filter-button {
++  border: 1px solid transparent;
++  background: var(--bg-secondary);
++  padding: 8px 14px;
++  border-radius: 999px;
++  font-size: 0.9rem;
++  color: var(--text-secondary);
++  cursor: pointer;
++  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
++}
++
++.filter-button:hover,
++.filter-button:focus-visible {
++  color: var(--text-primary);
++  background: var(--bg-hover);
++  outline: none;
++}
++
++.filter-button.is-active {
++  background: rgba(45, 156, 219, 0.12);
++  border-color: rgba(45, 156, 219, 0.35);
++  color: var(--primary-blue);
++}
++
++.task-form {
++  display: grid;
++  grid-template-columns: 1fr 72px auto;
++  gap: 12px;
++}
++
++.task-form__input,
++.task-form__estimate {
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius-sm);
++  padding: 12px;
++  font-size: 1rem;
++  background: var(--bg-secondary);
++  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
++}
++
++.task-form__input:focus,
++.task-form__estimate:focus {
++  outline: none;
++  border-color: rgba(45, 156, 219, 0.6);
++  box-shadow: 0 0 0 3px rgba(45, 156, 219, 0.15);
++}
++
++.task-form__estimate-label {
++  position: absolute;
++  left: -9999px;
++}
++
++.btn {
++  border: none;
++  border-radius: 999px;
++  padding: 11px 24px;
++  font-size: 1rem;
++  font-weight: 600;
++  cursor: pointer;
++  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
++}
++
++.btn:focus-visible {
++  outline: 2px solid rgba(45, 156, 219, 0.6);
++  outline-offset: 2px;
++}
++
++.btn--primary {
++  background: var(--primary-blue);
++  color: #ffffff;
++  box-shadow: 0 10px 18px rgba(45, 156, 219, 0.25);
++}
++
++.btn--primary:hover {
++  transform: translateY(-1px);
++  box-shadow: 0 12px 24px rgba(45, 156, 219, 0.3);
++}
++
++.btn--secondary {
++  background: transparent;
++  color: var(--text-primary);
++  border: 1px solid var(--border-color);
++}
++
++.btn--secondary:hover {
++  background: var(--bg-hover);
++}
++
++.btn--danger {
++  background: var(--primary-red);
++  color: #ffffff;
++}
++
++.btn--danger:hover {
++  box-shadow: 0 12px 22px rgba(231, 76, 60, 0.25);
++}
++
++.alert {
++  min-height: 24px;
++  color: var(--primary-red);
++  font-size: 0.9rem;
++  font-weight: 500;
++}
++
++.task-list {
++  list-style: none;
++  margin: 0;
++  padding: 0;
++  display: flex;
++  flex-direction: column;
++  gap: 12px;
++}
++
++.task-item {
++  display: grid;
++  grid-template-columns: auto 1fr auto;
++  gap: 12px;
++  align-items: center;
++  background: var(--bg-secondary);
++  border: 1px solid var(--border-color);
++  border-radius: var(--radius-sm);
++  padding: 12px 16px;
++  position: relative;
++  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
++}
++
++.task-item::before {
++  content: "";
++  position: absolute;
++  left: 0;
++  top: 0;
++  bottom: 0;
++  width: 4px;
++  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
++  background: transparent;
++  transition: background var(--transition-fast);
++}
++
++.task-item:hover {
++  transform: translateX(4px);
++}
++
++.task-item.entering {
++  animation: fadeIn 0.3s ease-out;
++}
++
++.task-item.removing {
++  animation: fadeOut 0.28s ease-in forwards;
++}
++
++.task-item.selected {
++  border-color: rgba(45, 156, 219, 0.45);
++  background: rgba(45, 156, 219, 0.12);
++}
++
++.task-item.selected::before {
++  background: var(--primary-blue);
++}
++
++.task-item.completed {
++  opacity: 0.6;
++}
++
++.task-item.completed .task-title {
++  text-decoration: line-through;
++  color: var(--text-secondary);
++}
++
++.task-checkbox {
++  width: 22px;
++  height: 22px;
++  accent-color: var(--primary-blue);
++  cursor: pointer;
++}
++
++.task-content {
++  display: flex;
++  flex-direction: column;
++  gap: 6px;
++}
++
++.task-title {
++  margin: 0;
++  font-size: 1rem;
++  font-weight: 600;
++}
++
++.task-meta {
++  display: flex;
++  gap: 8px;
++  align-items: center;
++  font-size: 0.85rem;
++  color: var(--text-secondary);
++}
++
++.task-meta__badge {
++  padding: 2px 10px;
++  border-radius: 999px;
++  background: rgba(45, 156, 219, 0.12);
++  color: var(--primary-blue);
++  font-weight: 600;
++}
++
++.task-meta__badge[data-status="achieved"] {
++  background: rgba(39, 174, 96, 0.14);
++  color: var(--primary-green);
++}
++
++.task-meta__badge[data-status="over"] {
++  background: rgba(243, 156, 18, 0.16);
++  color: #d08622;
++}
++
++.task-actions {
++  display: flex;
++  gap: 8px;
++}
++
++.task-action {
++  border: none;
++  background: transparent;
++  color: var(--text-secondary);
++  cursor: pointer;
++  padding: 6px;
++  border-radius: 8px;
++  transition: background var(--transition-fast), color var(--transition-fast);
++}
++
++.task-action:hover,
++.task-action:focus-visible {
++  color: var(--text-primary);
++  background: var(--bg-hover);
++  outline: none;
++}
++
++.timer {
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  gap: 12px;
++  padding: 24px;
++  border-radius: var(--radius-md);
++  background: linear-gradient(160deg, rgba(231, 76, 60, 0.1), rgba(45, 156, 219, 0.18));
++  position: relative;
++  overflow: hidden;
++}
++
++.timer.running {
++  animation: pulse 2.4s ease-in-out infinite;
++}
++
++.timer__chip {
++  font-size: 0.85rem;
++  font-weight: 600;
++  padding: 6px 14px;
++  border-radius: 999px;
++  background: rgba(45, 156, 219, 0.2);
++  color: var(--primary-blue);
++}
++
++.timer__display {
++  font-size: clamp(48px, 10vw, 72px);
++  font-weight: 700;
++  letter-spacing: 4px;
++}
++
++.timer__progress {
++  width: 100%;
++  height: 12px;
++  background: rgba(255, 255, 255, 0.6);
++  border-radius: 999px;
++  overflow: hidden;
++  position: relative;
++}
++
++.timer__progress-inner {
++  width: 0;
++  height: 100%;
++  background: linear-gradient(90deg, var(--primary-blue) 0%, var(--primary-green) 100%);
++  transform-origin: left;
++  transition: width 0.25s ease-out;
++}
++
++.timer-controls {
++  display: flex;
++  gap: 12px;
++  flex-wrap: wrap;
++  justify-content: center;
++}
++
++.timer-details {
++  display: grid;
++  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
++  gap: 12px;
++}
++
++.timer-details__item {
++  background: var(--bg-secondary);
++  border-radius: var(--radius-sm);
++  padding: 12px;
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++  align-items: flex-start;
++}
++
++.timer-details__label {
++  font-size: 0.75rem;
++  color: var(--text-secondary);
++}
++
++.timer-details__value {
++  font-size: 1.1rem;
++  font-weight: 600;
++}
++
++.stats {
++  background: var(--bg-secondary);
++  border-radius: var(--radius-md);
++  padding: 18px;
++  display: flex;
++  flex-direction: column;
++  gap: 12px;
++}
++
++.stats__title {
++  margin: 0;
++  font-size: 1.1rem;
++}
++
++.stats__list {
++  list-style: none;
++  padding: 0;
++  margin: 0;
++  display: flex;
++  flex-direction: column;
++  gap: 8px;
++}
++
++.stats__item {
++  display: flex;
++  justify-content: space-between;
++  font-size: 0.95rem;
++  color: var(--text-secondary);
++}
++
++.stats__item span:last-child {
++  color: var(--text-primary);
++  font-weight: 600;
++}
++
++.visual-notification {
++  pointer-events: none;
++  position: fixed;
++  inset: 0;
++  background: rgba(255, 200, 0, 0.15);
++  opacity: 0;
++  transition: opacity 0.4s ease;
++  z-index: 10;
++}
++
++.visual-notification.is-active {
++  opacity: 1;
++  animation: flash 1.2s ease-in-out 2;
++}
++
++.sr-only {
++  position: absolute;
++  width: 1px;
++  height: 1px;
++  padding: 0;
++  margin: -1px;
++  overflow: hidden;
++  clip: rect(0, 0, 0, 0);
++  border: 0;
++}
++
++@keyframes fadeIn {
++  from {
++    opacity: 0;
++    transform: translateY(-8px);
++  }
++  to {
++    opacity: 1;
++    transform: translateY(0);
++  }
++}
++
++@keyframes fadeOut {
++  to {
++    opacity: 0;
++    transform: translateX(-24px);
++    height: 0;
++    margin-top: 0;
++    margin-bottom: 0;
++    padding-top: 0;
++    padding-bottom: 0;
++  }
++}
++
++@keyframes pulse {
++  0%,
++  100% {
++    transform: scale(1);
++  }
++  50% {
++    transform: scale(1.03);
++  }
++}
++
++@keyframes flash {
++  0%,
++  100% {
++    opacity: 0;
++  }
++  50% {
++    opacity: 1;
++  }
++}
++
++@media (max-width: 1023px) {
++  .today-summary {
++    width: 100%;
++    justify-content: space-between;
++  }
++
++  .task-form {
++    grid-template-columns: 1fr 68px auto;
++    gap: 10px;
++  }
++}
++
++@media (min-width: 1024px) {
++  .app__main {
++    grid-template-columns: 0.44fr 0.56fr;
++  }
++}
++
++@media (min-width: 768px) and (max-width: 1023px) {
++  .app__main {
++    grid-template-columns: 0.48fr 0.52fr;
++  }
++}
++
++@media (max-width: 767px) {
++  .app {
++    padding: 16px;
++    gap: 18px;
++  }
++
++  .today-summary {
++    flex-direction: column;
++    gap: 8px;
++  }
++
++  .summary-card {
++    width: 100%;
++    flex-direction: row;
++    justify-content: space-between;
++  }
++
++  .app__main {
++    display: flex;
++    flex-direction: column;
++  }
++
++  .panel--timer {
++    order: -1;
++  }
++
++  .task-form {
++    grid-template-columns: 1fr;
++  }
++
++  .task-form__estimate {
++    width: 100%;
++  }
++
++  .filter-button {
++    flex: 1;
++  }
++
++  .task-item {
++    grid-template-columns: auto 1fr;
++    grid-template-areas:
++      "checkbox title"
++      "checkbox meta"
++      "checkbox actions";
++    row-gap: 8px;
++  }
++
++  .task-checkbox {
++    grid-area: checkbox;
++  }
++
++  .task-content {
++    grid-area: title;
++  }
++
++  .task-meta {
++    grid-area: meta;
++  }
++
++  .task-actions {
++    grid-area: actions;
++    justify-content: flex-start;
++  }
++
++  .timer-controls {
++    flex-direction: column;
++  }
++}
++
++@media (prefers-reduced-motion: reduce) {
++  *,
++  *::before,
++  *::after {
++    animation-duration: 0.001ms !important;
++    animation-iteration-count: 1 !important;
++    transition-duration: 0.001ms !important;
++    scroll-behavior: auto !important;
++  }
++}
+```
+
+## 🔍 Automated Analysis
+
+### Changes Summary
+
+- **Lines Added**: 2043
+- **Lines Removed**: 4
+- **Net Change**: 2039 lines
+
+### Potential Issues Detected
+
+✅ **No major issues detected** by automated pattern matching.
+
+This does not guarantee the code is problem-free. Manual review is still recommended.
+
+### 📝 Code Quality Suggestions
+
+- **Security**: Review all changes for security implications, especially authentication and data handling
+- **Error Handling**: Ensure proper error handling and recovery mechanisms are implemented
+- **Testing**: Add unit tests for new functionality and edge cases
+- **Documentation**: Update relevant documentation, docstrings, and comments
+- **Style Guide**: Follow project-specific code style and formatting guidelines
+- **Performance**: Consider performance implications of changes, especially in loops and database queries
+- **Logging**: Use structured logging with appropriate log levels (DEBUG, INFO, WARNING, ERROR)
+
+## 🤖 AI-Enhanced Analysis (gemini)
+
+Loaded cached credentials.
+Here is a review of the provided code changes, focusing on security, performance, and best practices.
+
+### 1. Security Vulnerabilities
+
+*   **Potential Cross-Site Scripting (XSS):**
+    *   **Issue:** The code introduces a custom `sanitize` function to prevent XSS attacks when creating task titles. While this is a good initiative, custom sanitizers are difficult to get right and can often be bypassed by sophisticated attacks. The security of the application depends entirely on the robustness of this single function.
+    *   **Recommendation:** The most secure approach is to avoid rendering user input as HTML altogether. When displaying the task title in the DOM, use the `textContent` property instead of `innerHTML`. This treats the input as plain text and lets the browser handle the necessary escaping.
+        *   **Example:** Instead of `taskElement.innerHTML = sanitizedTitle;`, use `taskElement.textContent = title;` (passing the raw title, not the sanitized one).
+    *   **Alternative:** If you must allow some HTML in the future, replace the custom `sanitize` function with a well-audited, industry-standard library like [DOMPurify](https://github.com/cure53/dompurify).
+
+### 2. Performance Implications
+
+*   **DOM Manipulation:**
+    *   **Issue:** The function `renderTasks(true)` is called after every new task submission. If this function re-renders the entire task list from scratch, it could lead to poor performance and UI lag, especially as the number of tasks grows.
+    *   **Recommendation:** Refactor `renderTasks` to perform more granular updates. When a new task is created, generate only the HTML for that new task and prepend it to the task list element. This avoids unnecessarily re-rendering existing elements.
+
+*   **`beforeunload` Event:**
+    *   **Issue:** The `persistAll` function, which saves data to `localStorage`, is attached to the `beforeunload` event. `localStorage` operations are synchronous and block the main thread. If the user accumulates a very large amount of data (many tasks and a long history), this could cause a noticeable delay when they try to close the tab or browser.
+    *   **Recommendation:** For this application's scale, the impact is likely minimal. However, a more robust solution for larger datasets would be to switch to an asynchronous storage API like [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API).
+
+### 3. Best Practice Violations
+
+*   **Global State Management:**
+    *   **Issue:** The application relies on a single, mutable global `state` object. Many different functions directly modify this object, which can make it difficult to track how and when the state changes. This can lead to bugs that are hard to debug as the application grows in complexity.
+    *   **Recommendation:** Adopt a more structured approach to state management. Even a simple publish/subscribe pattern would help. Functions should update the state and then "publish" a "stateChanged" event. A central rendering function would "subscribe" to this event and update the UI accordingly. This separates state logic from rendering logic.
+
+*   **Inconsistent Error Handling:**
+    *   **Issue:** The code defines an `ERROR_MESSAGES` object to centralize error strings, which is great. However, in `handleTaskSubmit`, a custom error message (`"見積もりは1〜20の範囲で入力してください"`) is passed directly to `showAlert` instead of using the constants object.
+    *   **Recommendation:** Add this message to the `ERROR_MESSAGES` object with a new key (e.g., `E009`) and call `showAlert("E009")` for consistency and easier maintenance/translation.
+
+*   **Use of Magic Numbers and Strings:**
+    *   **Issue:** The code contains hardcoded values like the max task length (`100`), estimate ranges (`1`, `20`), and action names (`"edit"`, `"delete"`). This makes the code harder to read and maintain.
+    *   **Recommendation:** Define these values as constants at the top of the file (e.g., `const MAX_TASK_TITLE_LENGTH = 100;`). This improves readability and makes it easier to update these values in one place.
+
+### 4. Suggestions for Improvement
+
+*   **Modularization:** The `app.js` file is over 900 lines long. This makes it difficult to navigate and understand. Consider breaking the code into smaller, feature-specific modules (e.g., `task.js`, `timer.js`, `ui.js`, `storage.js`). This will significantly improve the project's structure and maintainability.
+*   **Unique ID Generation:** Using `Date.now()` for task IDs is not guaranteed to be unique if tasks are created very quickly. While the risk is low for a single user, using a more robust method like generating a random string or using a library like `uuid` (if you were using a bundler) would be a better long-term solution. For this simple app, `Date.now()` combined with a random number could also suffice (e.g., `` `task_${Date.now()}_${Math.random()}` ``).
+
+## ✅ Action Items
+
+Based on this automated review, consider the following actions:
+
+1. 🔴 **Address Critical Issues**: Fix all security vulnerabilities before merging
+2. 🟠 **Review High Priority**: Investigate high-priority issues and determine appropriate fixes
+3. 🟡 **Consider Medium Priority**: Evaluate medium-priority suggestions for code quality improvement
+4. 🧪 **Add Tests**: Ensure adequate test coverage for all new code paths
+5. 📚 **Update Docs**: Update documentation to reflect code changes
+6. 👥 **Peer Review**: Request manual peer review from team members
+
+---
+
+**Review Generated**: 2025年 10月 27日 月曜日 22:42:15 JST
+**Review Type**: Alternative Implementation (Pattern Matching + AI)
+**Commit**: `c08a599` (`HEAD`)
+
+> ⚠️  **Note**: This is an automated alternative review. For production-grade analysis, use CodeRabbit CLI or comprehensive manual review.
+

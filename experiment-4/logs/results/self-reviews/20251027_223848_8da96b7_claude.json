@@ -1,0 +1,12 @@
+{
+  "timestamp": "2025-10-27T13:38:48Z",
+  "commit": "HEAD",
+  "commit_short": "8da96b7",
+  "review_duration_sec": 0,
+  "status": "completed",
+  "analysis": {
+    "critical_issues": 0,
+    "warnings": 0
+  },
+  "log_file": "/home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_8da96b7_claude.log"
+}

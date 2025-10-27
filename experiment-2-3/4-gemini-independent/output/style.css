@@ -1,0 +1,233 @@
+/* フェーズ1: プロジェクトの基本設定とHTML構造 */
+:root {
+  /* Primary Colors */
+  --primary-red: #e74c3c;      /* 作業中の色 */
+  --primary-green: #27ae60;    /* 休憩中の色 */
+  --primary-blue: #3498db;     /* アクセント */
+  
+  /* Background */
+  --bg-main: #ffffff;          /* メイン背景 */
+  --bg-secondary: #f8f9fa;     /* セカンダリ背景 */
+  --bg-hover: #e9ecef;         /* ホバー時 */
+  
+  /* Text */
+  --text-primary: #2c3e50;     /* メインテキスト */
+  --text-secondary: #7f8c8d;   /* サブテキスト */
+  --text-disabled: #bdc3c7;    /* 無効状態 */
+  
+  /* Border */
+  --border-color: #dee2e6;
+  
+  /* Status */
+  --success: #27ae60;
+  --warning: #f39c12;
+  --error: #e74c3c;
+
+  /* Typography */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+  --font-size-timer: 64px;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+}
+
+.column {
+    flex: 1;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+header {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+}
+
+/* --- Task List --- */
+#task-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+.task-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.task-item:hover {
+    background-color: var(--bg-hover);
+    transform: translateX(4px);
+}
+
+.task-title {
+    flex-grow: 1;
+    margin: 0 10px;
+}
+
+.task-item.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.delete-btn:hover {
+    color: var(--error);
+}
+
+.task-item.editing .task-title,
+.task-item.editing input[type="checkbox"],
+.task-item.editing .delete-btn {
+    display: none;
+}
+
+.edit-input {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+    background: transparent;
+}
+
+.edit-input:focus {
+    outline: none;
+    background: #fff;
+}
+
+#task-filters button.active {
+    background-color: var(--primary-blue);
+    color: white;
+    border-color: var(--primary-blue);
+}
+
+/* --- Timer Modes --- */
+.work-mode {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+.short-break-mode {
+    background-color: rgba(39, 174, 96, 0.1);
+}
+.long-break-mode {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.task-item.selected {
+    border-left: 4px solid var(--primary-blue);
+    background-color: var(--bg-hover);
+}
+
+/* --- Animations --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.task-item.new {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.task-item.removing {
+  animation: fadeOut 0.3s ease-out forwards;
+}
+
+/* --- Component Styles --- */
+button {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: var(--bg-main);
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background-color: var(--bg-hover);
+}
+
+#task-form button, #timer-controls button {
+    padding: 12px 24px;
+}
+
+#timer-controls button#start-btn {
+    background-color: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+}
+
+input[type="text"] {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: var(--font-size-base);
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+#timer-display {
+    font-size: var(--font-size-timer);
+    font-weight: var(--font-weight-bold);
+    margin: 20px 0;
+}
+
+.task-item.editing .pomo-count {
+    display: none;
+}

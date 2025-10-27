@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-10-27T13:40:28Z",
+  "commit": "HEAD",
+  "commit_short": "7171739",
+  "review_duration_sec": 0,
+  "status": "completed",
+  "analysis": {
+    "thinking_blocks": 12,
+    "exec_blocks": 12,
+    "critical_issues": 2,
+    "warnings": 2
+  },
+  "log_file": "/home/ryu/projects/comparison-pomodoro-todo/logs/self-review-experiment/20251027_223825/results/self-reviews/20251027_223825_7171739_codex.log"
+}
